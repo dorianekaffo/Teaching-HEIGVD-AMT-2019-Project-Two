@@ -65,9 +65,6 @@ The objectives of this project is to design, specify, implement and validate **2
   * In particular a detailed report about your **experiment** to answer the performance tests. We want a clear description of the experiment. We want numbers, graphs and explanations of what they mean.
   * A list of **known bugs and limitations**.
 
-## Proposed timeline
-
-You don't have to follow this sequence if you prefer to do some of the tasks before. However, if you don't know how to start, this is probably a **decomposition** that will help you.
 
 ** **
 
