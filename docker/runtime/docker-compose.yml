@@ -1,0 +1,31 @@
+# Define the services/containers to be run
+version: "3.7"
+services:
+  reverse_proxy:
+    image: traefik:v2.0
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
+    ports:
+     # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+  server_one:
+    build: ../../first-api
+    links:
+      - server_one_db # Linking this service to the database
+  server_one_db:
+    image: mysql/mysql-server:latest # We are going to use mysql
+    ports:
+      - "3306:3306"
+  server_two:
+    build: ../../second-api
+    links:
+      - server_two_db # Linking this service to the database
+  server_two_db:
+    image: mysql/mysql-server:latest # We are going to use mysql
+    ports:
+      - "3306:3306"

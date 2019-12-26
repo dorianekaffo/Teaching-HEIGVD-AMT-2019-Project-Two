@@ -1,0 +1,330 @@
+swagger: "2.0"
+info:
+  description: "Ce serveur a été construit dans le cadre du deuxième projet de l'AMT 2019. Ceci regroupe les API de la deuxième partie du projet."
+  version: "1.0.0"
+  title: "AMT 2019 - Project Two API - Deuxième partie "
+  termsOfService: ""
+host: "localhost:8080"
+basePath: "/"
+tags:
+- name: "person"
+  description: "Toutes personnes"
+- name: "group"
+  description: "Tous les groupes"
+- name: "membership"
+  description: "Toutes les relations entre personne et groupe"
+schemes:
+- "http"
+paths:
+  /persons:
+    post:
+      tags:
+      - "person"
+      summary: "Créer une personne"
+      description: "Créer une personne"
+      operationId: "createPerson"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Personne à créer"
+        required: true
+        schema:
+          $ref: "#/definitions/Person"
+      responses:
+        default:
+          description: "La personne a été créé"
+          schema:
+            $ref: "#/definitions/Person"
+    get:
+      tags:
+      - "person"
+      summary: "Liste de toutes les personnes"
+      description: "Liste complète de toutes les personnes"
+      operationId: "getPersons"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        default:
+          description: "Toutes les personnes"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Person"
+  /persons/{id}:
+    get:
+      tags:
+      - "person"
+      summary: "Récupère la personne d'identifiant correspondant"
+      description: "Retourne la personne avec l'identifiant `id`"
+      operationId: "getPersonById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Identifiant de la personne"
+        required: true
+        type: "number"
+      responses:
+        200:
+          description: "Opération réussie"
+          schema:
+            $ref: "#/definitions/Person"
+        400:
+          description: "Identifiant fourni est invalide"
+        404:
+          description: "Personne non trouvée"
+    put:
+      tags:
+      - "person"
+      summary: "Mets à jour la personne d'identifiant correspondant"
+      description: "Mets à jour les attributs de la personne avec pour identifiant `id`"
+      operationId: "updatePerson"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Identifiant de la personne à mettre à jour"
+        required: true
+        type: "number"
+      - in: "body"
+        name: "body"
+        description: "Personne mise à jour"
+        required: true
+        schema:
+          $ref: "#/definitions/Person"
+      responses:
+        400:
+          description: "L'identifiant fourni est invalide"
+        404:
+          description: "La personne est introuvable"
+    delete:
+      tags:
+      - "person"
+      summary: "Supprimer une personne"
+      description: "Supprime la personne d'identifiant `id` correspondant"
+      operationId: "deletePerson"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "Personne à supprimer"
+        required: true
+        type: "number"
+      responses:
+        400:
+          description: "L'identifiant fourni est invalide"
+        404:
+          description: "La personne est introuvable"
+  /groups:
+    post:
+      tags:
+      - "group"
+      summary: "Crée un groupe"
+      description: "Crée un nouveau groupe"
+      operationId: "createGroup"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "group"
+        description: "Groupe à créer"
+        required: true
+        schema:
+          $ref: "#/definitions/Group"
+      responses:
+        default:
+          description: "Le groupe a été créé"
+          schema:
+            $ref: "#/definitions/Group"
+    get:
+      tags:
+      - "group"
+      summary: "Liste de tous les groupes"
+      description: "Liste complète de tous les groupes"
+      operationId: "getGroups"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        default:
+          description: "Tous les groupes"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Group"
+  /groups/{id}:
+    get:
+      tags:
+      - "group"
+      summary: "Récupère le groupe avec l'identifiant correspondant"
+      description: "Récupère le groupe d'identifiant `id`"
+      operationId: "getGroupById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "L'identifiant du groupe"
+        required: true
+        type: "number"
+      responses:
+        200:
+          description: "Groupe récupéré"
+          schema:
+            $ref: "#/definitions/Group"
+        400:
+          description: "L'identifiant fourni est invalide"
+        404:
+          description: "Le groupe est introuvable"
+    put:
+      tags:
+      - "group"
+      summary: "Mettre à jour un groupe"
+      description: "Mets à jour les informations sur le groupe"
+      operationId: "updateGroup"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "identifiant du groupe à mettre à jour"
+        required: true
+        type: "number"
+      - in: "body"
+        name: "body"
+        description: "Le groupe à mettre à jour"
+        required: true
+        schema:
+          $ref: "#/definitions/Group"
+      responses:
+        200:
+          description: "Groupe mis à jour"
+          schema:
+            $ref: "#/definitions/Group"
+        400:
+          description: "L'identifiant fourni est invalide"
+        404:
+          description: "Le groupe est introuvable"
+    delete:
+      tags:
+      - "group"
+      summary: "Supprime un groupe"
+      description: "Supprime un groupe et aussi toutes les associations faite avec des personnes"
+      operationId: "deleteGroup"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "identifiant du groupe à supprimer"
+        required: true
+        type: "number"
+      responses:
+        400:
+          description: "L'identifiant fourni est invalide"
+        404:
+          description: "Le groupe est introuvable"
+  /memberships:
+    post:
+      tags:
+      - "membership"
+      summary: "Associe une personne à un groupe"
+      description: "Associe une personne à un groupe"
+      operationId: "createMembership"
+      produces:
+      - "application/xml"
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Association entre une personne et un groupe"
+        required: true
+        schema:
+          $ref: "#/definitions/Membership"
+      responses:
+        default:
+          description: "Opération réussie"
+    get:
+      tags:
+      - "membership"
+      summary: "Recupére toutes les rélations entre une personne et un groupe"
+      description: "Récupère toutes les relations entre personne et groupe"
+      operationId: "getMemberships"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        default:
+          description: "Toutes les associations entre personne et groupe"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Membership"
+  /memberships/{id}:
+    get:
+      tags:
+      - "membership"
+      summary: "Récupère la relation d'identifiant [id] personne à un groupe"
+      description: "Recupère la relation entre une personne et un groupe"
+      operationId: "getMembership"
+      produces:
+      - "application/xml"
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "id"
+        description: "Identifiant de la relation"
+        type: "number"
+        required: true
+      responses:
+        default:
+          description: "Opération réussie"
+          schema:
+            $ref: "#/definitions/Membership"
+    delete:
+      tags:
+      - "membership"
+      summary: "Dissocie un personne d'un groupe"
+      description: "Cette action peut être faite sans connexion"
+      operationId: "deleteMembership"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "id"
+        description: "Identifiant de la relation"
+        type: "number"
+        required: true
+      responses:
+        default:
+          description: "La relation de "
+definitions:
+  Person:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+  Group:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+  Membership:
+    type: "object"
+    properties:
+      person:
+        $ref: "#/definitions/Person"
+      group:
+        $ref: "#/definitions/Group"
