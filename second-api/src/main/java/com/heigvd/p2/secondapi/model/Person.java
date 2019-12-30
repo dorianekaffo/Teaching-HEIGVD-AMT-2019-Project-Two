@@ -17,7 +17,7 @@ public class Person implements Serializable {
     private String name;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "person")
+    @OneToMany(mappedBy = "person", cascade = CascadeType.REMOVE)
     private Set<Membership> memberships;
 
     // -- Constructeur(s)

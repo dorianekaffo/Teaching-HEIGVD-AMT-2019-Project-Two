@@ -18,11 +18,37 @@ second-api/dependency-reduced-pom.xml
 second-api/buildNumber.properties
 second-api/.mvn/timing.properties
 
+employees/target/
+employees/pom.xml.tag
+employees/pom.xml.releaseBackup
+employees/pom.xml.versionsBackup
+employees/pom.xml.next
+employees/release.properties
+employees/dependency-reduced-pom.xml
+employees/buildNumber.properties
+employees/.mvn/timing.properties
+
+users-specs/target/
+users-specs/pom.xml.tag
+users-specs/pom.xml.releaseBackup
+users-specs/pom.xml.versionsBackup
+users-specs/pom.xml.next
+users-specs/release.properties
+users-specs/dependency-reduced-pom.xml
+users-specs/buildNumber.properties
+users-specs/.mvn/timing.properties
+
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !first-api/.mvn/wrapper/maven-wrapper.jar
 first-api/.idea/
 
 !second-api/.mvn/wrapper/maven-wrapper.jar
 second-api/.idea/
+
+!employees/.mvn/wrapper/maven-wrapper.jar
+employees/.idea/
+
+!users-specs/.mvn/wrapper/maven-wrapper.jar
+users-specs/.idea/
 
 .idea/

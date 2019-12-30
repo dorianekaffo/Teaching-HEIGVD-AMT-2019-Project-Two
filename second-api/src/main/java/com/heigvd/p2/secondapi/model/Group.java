@@ -17,7 +17,7 @@ public class Group implements Serializable {
     private String name;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "group", cascade = CASCADE)
+    @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
     private Set<Membership> memberships;
 
     // -- Constructeur
