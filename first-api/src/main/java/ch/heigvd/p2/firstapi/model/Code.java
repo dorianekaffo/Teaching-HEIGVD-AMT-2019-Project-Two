@@ -1,15 +1,15 @@
 package ch.heigvd.p2.firstapi.model;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
+@Entity
 public class Code {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String code;
@@ -19,15 +19,23 @@ public class Code {
     private boolean expired = false;
 
     @ManyToOne
-    private User user;
+    private User owner;
 
     // -- Constructeur
     public Code() { }
 
-    public Code(User user, Date expiryDate) {
+    public Code(User owner, Date expiryDate) {
         this.code = this.generateCode();
-        this.user = user;
+        this.owner = owner;
         this.expiryDate = expiryDate;
+    }
+
+    public Code(User owner, int validityPeriodInMs) {
+        this.code = this.generateCode();
+        this.owner = owner;
+        Calendar cExpiryDate = Calendar.getInstance();
+        cExpiryDate.add(Calendar.MILLISECOND, validityPeriodInMs);
+        this.expiryDate = cExpiryDate.getTime();
     }
 
     // -- Getter(s) et Setter(s)
@@ -47,12 +55,12 @@ public class Code {
         this.code = code;
     }
 
-    public User getUser() {
-        return user;
+    public User getOwner() {
+        return owner;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setOwner(User user) {
+        this.owner = user;
     }
 
     public Date getExpiryDate() {

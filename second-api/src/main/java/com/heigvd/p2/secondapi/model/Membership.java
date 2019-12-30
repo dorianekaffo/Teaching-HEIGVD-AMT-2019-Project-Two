@@ -1,13 +1,14 @@
 package com.heigvd.p2.secondapi.model;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 
 @Entity
-public class Membership {
+public class Membership implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -24,7 +25,7 @@ public class Membership {
     public Membership(Person person, Group group) {
         this.person = person;
         this.group = group;
-    }
+   }
 
     // -- Getter(s) et Setter(s)
     public Long getId() {

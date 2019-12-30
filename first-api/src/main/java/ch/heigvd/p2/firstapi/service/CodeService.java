@@ -1,13 +1,16 @@
 package ch.heigvd.p2.firstapi.service;
 
+import ch.heigvd.p2.firstapi.exception.RessourceNotFoundException;
 import ch.heigvd.p2.firstapi.model.Code;
 import ch.heigvd.p2.firstapi.model.User;
 import ch.heigvd.p2.firstapi.repository.ICodeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
 
+@Service
 public class CodeService {
 
     @Autowired
@@ -30,8 +33,9 @@ public class CodeService {
         return this.codeRepository.save(code);
     }
 
-    public boolean check(User user, String codeString) {
-        Code code = this.codeRepository.findByUserAndCodeAndExpired(user, codeString, false).get();
+    public boolean check(User user, String codeString) throws RessourceNotFoundException {
+        Code code = this.codeRepository.findByOwnerAndCodeAndExpired(user, codeString, false).orElseThrow(
+                () -> new RessourceNotFoundException("Code", "User - CodeString - Expired", user + " - " + codeString + " - " + false));
 
         if (code != null) {
             if (code.getExpiryDate().before(Calendar.getInstance().getTime())) {

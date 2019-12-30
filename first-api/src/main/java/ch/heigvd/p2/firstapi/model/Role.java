@@ -1,29 +1,34 @@
 package ch.heigvd.p2.firstapi.model;
 
 import ch.heigvd.p2.firstapi.enums.RoleType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 
+
 @Entity
+@JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
 public class Role {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
     private RoleType type;
 
+    @JsonIgnore
     @ManyToOne
-    @JoinColumn(columnDefinition = "user_id")
-    private User user;
+    @JoinColumn(name="user_id", referencedColumnName = "email")
+    private User owner;
 
     // -- Constructeur(s)
     public Role() {}
 
-    public Role(RoleType type, User user) {
+    public Role(RoleType type, User owner) {
         this.type = type;
-        this.user = user;
+        this.owner = owner;
     }
 
     // -- Getter(s) et Setter(s)
@@ -43,11 +48,11 @@ public class Role {
         this.type = type;
     }
 
-    public User getUser() {
-        return user;
+    public User getOwner() {
+        return owner;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setOwner(User user) {
+        this.owner = user;
     }
 }

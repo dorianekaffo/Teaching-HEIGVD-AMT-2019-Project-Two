@@ -1,26 +1,30 @@
 package ch.heigvd.p2.firstapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 
 @Entity
+@JsonIgnoreProperties({"handler", "hibernateLazyInitializer"})
 public class User implements Serializable {
     @Id
     private String email;
-
-    private String username;
     private String firstname;
     private String lastname;
+
+    @JsonIgnore
+    @ManyToOne()
+    private User owner;
+
     @JsonIgnore
     private String password;
 
-    @OneToMany(mappedBy = "user")
-    private Set<Role> roles;
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "owner")
+    private Set<Role> roles = new HashSet<>();
 
     private Boolean blocked = false;
 
@@ -74,5 +78,33 @@ public class User implements Serializable {
 
     public void setBlocked(Boolean blocked) {
         this.blocked = blocked;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "email='" + email + '\'' +
+                ", firstname='" + firstname + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", password='" + password + '\'' +
+                ", roles=" + roles +
+                ", blocked=" + blocked +
+                '}';
     }
 }

@@ -2,10 +2,12 @@ package ch.heigvd.p2.firstapi.security;
 
 import ch.heigvd.p2.firstapi.model.User;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -13,8 +15,7 @@ public class CustomUserDetails implements UserDetails {
     private String firstname;
     private String lastname;
     private String password;
-    private boolean blooked;
-    private String token;
+    private boolean blocked;
     private Collection<? extends GrantedAuthority> authorities;
 
     // -- Constructeur(s)
@@ -27,15 +28,19 @@ public class CustomUserDetails implements UserDetails {
     ) {
         this.email = email;
         this.firstname= firstname;
-        this.lastname=lastname;
+        this.lastname = lastname;
+        this.password = password;
         this.authorities = authorities;
     }
 
     public CustomUserDetails(User user) {
         this.email = user.getEmail();
-        this.firstname= user.getFirstname();
-        this.lastname=user.getLastname();
-        // this.authorities = user.get;
+        this.firstname = user.getFirstname();
+        this.lastname = user.getLastname();
+        this.blocked = user.getBlocked();
+        this.password = user.getPassword();
+        this.authorities = user.getRoles().stream().map(
+                (role) -> new SimpleGrantedAuthority("ROLE_" + role.getType().toString())).collect(Collectors.toList());
     }
     // -- Getter(s) et setter(s)
     public String getEmail() {
@@ -64,7 +69,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !this.blocked;
     }
 
     @Override
@@ -74,7 +79,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return !this.blocked;
     }
 
     @Override
@@ -100,14 +105,6 @@ public class CustomUserDetails implements UserDetails {
         this.email = email;
     }
 
-    public String getToken() {
-        return this.token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
     @Override
     public String toString() {
         return "CustomUserDetails{" +
@@ -115,8 +112,7 @@ public class CustomUserDetails implements UserDetails {
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", password='" + password + '\'' +
-                ", blooked=" + blooked +
-                ", token='" + token + '\'' +
+                ", blooked=" + blocked +
                 ", authorities=" + authorities +
                 '}';
     }

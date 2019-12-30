@@ -1,24 +1,28 @@
 package com.heigvd.p2.secondapi.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
-public class Group {
+@Table(name="department")
+public class Group implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
-    @OneToMany(mappedBy = "group")
+    @JsonIgnore
+    @OneToMany(mappedBy = "group", cascade = CASCADE)
     private Set<Membership> memberships;
 
     // -- Constructeur
+    public Group() {}
+
     public Group(String name) {
         this.name = name;
     }
@@ -26,6 +30,10 @@ public class Group {
     // -- Getter(s) et Setter(s)
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
