@@ -1,8 +1,8 @@
+# Docker compose file
 version: '3.7'
 services:
     traefik:
         image: 'traefik:v2.0.0-rc3'
-        container_name: traefik
         command:
             - '--api.insecure=true'
             - '--providers.docker=true'
@@ -13,55 +13,53 @@ services:
             - '8090:8080'
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock:ro'
-    server_one_db:
+    first_backend_db:
         image: 'mysql:latest'
         restart: always
         command: '--default-authentication-plugin=mysql_native_password'
         volumes:
-            - '/home/new_docker:/var/lib/mysql'
+            - '~/heig-vd/first_backend_db:/var/lib/mysql'
         environment:
-            - MYSQL_ROOT=dorianekaffo
             - MYSQL_ROOT_PASSWORD=simplepwd
-            - MYSQL_DATABASE=firstapi
+            - MYSQL_DATABASE=first_backend
         ports:
             - '3100:3306'
-    firstapi:
-        build: ../../first-api
+    first_backend:
+        build: ../../first-backend
         expose:
             - 8080
         labels:
             - traefik.enable=true
-            - traefik.http.routers.firstapi.rule=PathPrefix(`/users/`)
+            - traefik.http.routers.first_backend.rule=PathPrefix(`/`)
         volumes:
-            - '/home/new_docker/files:/tmp/fichiers'
+            - '~/heig-vd/first_backend/files:/tmp/fichiers'
         depends_on:
-            - server_one_db
+            - first_backend_db
         links:
-            - 'server_one_db:server_one_db'
+            - 'first_backend_db:first_backend_db'
 
-    server_two_db:
+    second_backend_db:
         image: 'mysql:latest'
         restart: always
         command: '--default-authentication-plugin=mysql_native_password'
         volumes:
-            - '/home/new_docker:/var/lib/mysql'
+            - '~/heig-vd/second_backend_db:/var/lib/mysql'
         environment:
-            - MYSQL_ROOT=dorianekaffo
             - MYSQL_ROOT_PASSWORD=simplepwd
-            - MYSQL_DATABASE=firstapi
+            - MYSQL_DATABASE=second_backend
         ports:
-            - '3100:3306'
-    employees:
-        build: ../../employees
+            - '3200:3306'
+    second_backend:
+        build: ../../second-backend
         expose:
             - 8080
         labels:
             - traefik.enable=true
-            - traefik.http.routers.firstapi.rule=PathPrefix(`/employees/`)
+            - traefik.http.routers.secondbackend.rule=PathPrefix(`/`)
         volumes:
-            - '/home/new_docker/files:/tmp/fichiers'
+            - '~/heig-vd/second_backend:/tmp/fichiers'
         depends_on:
-            - server_two_db
+            - second_backend_db
         links:
-            - 'server_two_db:server_two_db'
+            - 'second_backend_db:second_backend_db'
 

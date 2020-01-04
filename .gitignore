@@ -1,54 +1,60 @@
-first-api/target/
-first-api/pom.xml.tag
-first-api/pom.xml.releaseBackup
-first-api/pom.xml.versionsBackup
-first-api/pom.xml.next
-first-api/release.properties
-first-api/dependency-reduced-pom.xml
-first-api/buildNumber.properties
-first-api/.mvn/timing.properties
+first-backend/target/
+first-backend/pom.xml.tag
+first-backend/pom.xml.releaseBackup
+first-backend/pom.xml.versionsBackup
+first-backend/pom.xml.next
+first-backend/release.properties
+first-backend/dependency-reduced-pom.xml
+first-backend/buildNumber.properties
+first-backend/.mvn/timing.properties
 
-second-api/target/
-second-api/pom.xml.tag
-second-api/pom.xml.releaseBackup
-second-api/pom.xml.versionsBackup
-second-api/pom.xml.next
-second-api/release.properties
-second-api/dependency-reduced-pom.xml
-second-api/buildNumber.properties
-second-api/.mvn/timing.properties
+second-backend/target/
+second-backend/pom.xml.tag
+second-backend/pom.xml.releaseBackup
+second-backend/pom.xml.versionsBackup
+second-backend/pom.xml.next
+second-backend/release.properties
+second-backend/dependency-reduced-pom.xml
+second-backend/buildNumber.properties
+second-backend/.mvn/timing.properties
 
-employees/target/
-employees/pom.xml.tag
-employees/pom.xml.releaseBackup
-employees/pom.xml.versionsBackup
-employees/pom.xml.next
-employees/release.properties
-employees/dependency-reduced-pom.xml
-employees/buildNumber.properties
-employees/.mvn/timing.properties
+second-backend-specs/target/
+second-backend-specs/pom.xml.tag
+second-backend-specs/pom.xml.releaseBackup
+second-backend-specs/pom.xml.versionsBackup
+second-backend-specs/pom.xml.next
+second-backend-specs/release.properties
+second-backend-specs/dependency-reduced-pom.xml
+second-backend-specs/buildNumber.properties
+second-backend-specs/.mvn/timing.properties
 
-users-specs/target/
-users-specs/pom.xml.tag
-users-specs/pom.xml.releaseBackup
-users-specs/pom.xml.versionsBackup
-users-specs/pom.xml.next
-users-specs/release.properties
-users-specs/dependency-reduced-pom.xml
-users-specs/buildNumber.properties
-users-specs/.mvn/timing.properties
+first-backend-specs/target/
+first-backend-specs/pom.xml.tag
+first-backend-specs/pom.xml.releaseBackup
+first-backend-specs/pom.xml.versionsBackup
+first-backend-specs/pom.xml.next
+first-backend-specs/release.properties
+first-backend-specs/dependency-reduced-pom.xml
+first-backend-specs/buildNumber.properties
+first-backend-specs/.mvn/timing.properties
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
-!first-api/.mvn/wrapper/maven-wrapper.jar
-first-api/.idea/
+!first-backend/.mvn/wrapper/maven-wrapper.jar
+first-backend/.idea/
+first-backend/.idea
+first-backend/*.iml
 
-!second-api/.mvn/wrapper/maven-wrapper.jar
-second-api/.idea/
+!second-backend/.mvn/wrapper/maven-wrapper.jar
+second-backend/.idea/
+second-backend/*.iml
 
-!employees/.mvn/wrapper/maven-wrapper.jar
-employees/.idea/
+!second-backend-specs/.mvn/wrapper/maven-wrapper.jar
+second-backend-specs/.idea/
+second-backend-specs/*.iml
 
-!users-specs/.mvn/wrapper/maven-wrapper.jar
-users-specs/.idea/
+!first-backend-specs/.mvn/wrapper/maven-wrapper.jar
+first-backend-specs/.idea/
+first-backend-specs/*.iml
 
 .idea/
+*.iml
