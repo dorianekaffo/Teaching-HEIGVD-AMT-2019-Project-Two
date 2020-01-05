@@ -1,6 +1,6 @@
 package ch.heigvd.amt.p2.enums;
 
-public enum RoleType {
+public enum Role {
 
     ADMIN,
     NORMAL;

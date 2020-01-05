@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ public class CustomUserDetails implements UserDetails {
     private String lastname;
     private String password;
     private boolean blocked;
-    private Collection<? extends GrantedAuthority> authorities;
+    private Collection<GrantedAuthority> authorities;
 
     // -- Constructeur(s)
     public CustomUserDetails(
@@ -24,7 +25,7 @@ public class CustomUserDetails implements UserDetails {
             String firstname,
             String lastname,
             String password,
-            Collection<? extends GrantedAuthority> authorities
+            Collection<GrantedAuthority> authorities
     ) {
         this.email = email;
         this.firstname= firstname;
@@ -39,8 +40,8 @@ public class CustomUserDetails implements UserDetails {
         this.lastname = user.getLastname();
         this.blocked = user.getBlocked();
         this.password = user.getPassword();
-        this.authorities = user.getRoles().stream().map(
-                (role) -> new SimpleGrantedAuthority("ROLE_" + role.getType().toString())).collect(Collectors.toList());
+        this.authorities = new ArrayList<>();
+        this.authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
     }
     // -- Getter(s) et setter(s)
     public String getEmail() {
@@ -92,7 +93,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(this.email);
     }
 
@@ -112,7 +112,7 @@ public class CustomUserDetails implements UserDetails {
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", password='" + password + '\'' +
-                ", blooked=" + blocked +
+                ", blocked=" + blocked +
                 ", authorities=" + authorities +
                 '}';
     }

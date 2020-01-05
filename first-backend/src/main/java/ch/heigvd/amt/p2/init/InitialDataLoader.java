@@ -1,9 +1,7 @@
 package ch.heigvd.amt.p2.init;
 
-import ch.heigvd.amt.p2.enums.RoleType;
-import ch.heigvd.amt.p2.model.Role;
+import ch.heigvd.amt.p2.enums.Role;
 import ch.heigvd.amt.p2.model.User;
-import ch.heigvd.amt.p2.repository.IRoleRepository;
 import ch.heigvd.amt.p2.repository.IUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +22,6 @@ public class InitialDataLoader implements
     private IUserRepository userService;
 
     @Autowired
-    private IRoleRepository roleService;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Value("${app.admin.email}")
@@ -37,6 +32,9 @@ public class InitialDataLoader implements
 
     @Value("${app.admin.firstname}")
     private String ADMIN_FIRSTNAME;
+
+    @Value("${app.admin.lastname}")
+    private String ADMIN_LASTNAME;
 
     @Override
     @Transactional
@@ -55,17 +53,11 @@ public class InitialDataLoader implements
             User admin = new User(
                 ADMIN_EMAIL,
                 ADMIN_FIRSTNAME,
-                null,
+                    ADMIN_LASTNAME,
                 this.passwordEncoder.encode(ADMIN_PASSWORD)
             );
 
-            admin = this.userService.save(admin);
-
-            Role adminRole = new Role(RoleType.ADMIN, admin);
-            this.roleService.save(adminRole);
-
-            Set<Role> roles = this.roleService.findByOwner(admin);
-            admin.setRoles(roles);
+            admin.setRole(Role.ADMIN);
             this.userService.save(admin);
 
         }

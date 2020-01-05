@@ -1,5 +1,6 @@
 package ch.heigvd.amt.p2.service;
 
+import ch.heigvd.amt.p2.enums.Role;
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
 import ch.heigvd.amt.p2.exception.UnauthorizedAccessException;
 import ch.heigvd.amt.p2.model.User;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 @Service
 public class UserService implements IEntityService<User, String> {
@@ -31,28 +33,34 @@ public class UserService implements IEntityService<User, String> {
     @Autowired
     private TokenService tokenService;
 
-    @Autowired
-    private RoleService roleService;
-
     @Override
-    public User create(User user) {
-        return this.userRepository.save(user);
+    public User create(User user) throws ResourceNotFoundException {
+
+        if (user.getOwner() != null && this.userRepository.existsById(user.getOwner())) {
+            return this.userRepository.save(user);
+        } else {
+            throw new ResourceNotFoundException("User", "email", user.getOwner());
+        }
+
     }
 
     @Override
     public User update(String email, User user) throws ResourceNotFoundException {
         if (this.userRepository.existsById(email) && user.getEmail() != null) {
-            return this.userRepository.save(user);
+            if (user.getOwner() != null && this.userRepository.existsById(user.getOwner())) {
+                return this.userRepository.save(user);
+            } else {
+                throw new ResourceNotFoundException("User", "email", user.getOwner());
+            }
+        } else {
+            throw new ResourceNotFoundException("User", "email", email);
         }
-        throw new ResourceNotFoundException("User", "email", email);
     }
 
     @Override
     public void delete(String email) throws ResourceNotFoundException {
-        if (this.userRepository.existsById(email)) {
-            this.userRepository.deleteById(email);
-        }
-        throw new ResourceNotFoundException("User", "email", email);
+        User user = this.get(email);
+        this.userRepository.delete(user);
     }
 
     @Override
@@ -66,7 +74,7 @@ public class UserService implements IEntityService<User, String> {
     }
 
     public Page<User> get(String ownerId, Pageable pgble) {
-        return this.userRepository.findByOwnerEmail(ownerId, pgble);
+        return this.userRepository.findByOwner(ownerId, pgble);
     }
 
     public void changeBlockedStatus(String email, boolean willBlock) throws ResourceNotFoundException {
@@ -119,12 +127,16 @@ public class UserService implements IEntityService<User, String> {
     }
 
     public boolean checkOwner(String ownerId, String userId) throws UnauthorizedAccessException {
-        if (this.userRepository.existsByEmailAndOwnerEmail(userId, ownerId) ||
-            this.roleService.isAdmin(ownerId)
+        if (this.userRepository.existsByEmailAndOwner(userId, ownerId) ||
+            this.isAdmin(ownerId)
         ) {
             return true;
         };
         throw new UnauthorizedAccessException("User", userId);
+    }
+
+    public boolean isAdmin(String ownerId) {
+        return this.userRepository.existsByEmailAndRole(ownerId, Role.ADMIN);
     }
 
 }

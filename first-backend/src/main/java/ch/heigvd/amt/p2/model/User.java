@@ -1,10 +1,10 @@
 package ch.heigvd.amt.p2.model;
 
+import ch.heigvd.amt.p2.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.*;
 
@@ -17,17 +17,14 @@ public class User implements Serializable {
     private String lastname;
 
     @JsonIgnore
-    @ManyToOne()
-    private User owner;
-
-    @JsonIgnore
     private String password;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "owner")
-    private Set<Role> roles = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     private Boolean blocked = false;
-
+    private String owner;
+    
     // -- Constructeur(s)
     public User() {
     }
@@ -80,19 +77,19 @@ public class User implements Serializable {
         this.blocked = blocked;
     }
 
-    public Set<Role> getRoles() {
-        return roles;
+    public Role getRole() {
+        return role;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
-    public User getOwner() {
+    public String getOwner() {
         return owner;
     }
 
-    public void setOwner(User owner) {
+    public void setOwner(String owner) {
         this.owner = owner;
     }
 
@@ -103,8 +100,9 @@ public class User implements Serializable {
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", password='" + password + '\'' +
-                ", roles=" + roles +
+                ", roles=" + role +
                 ", blocked=" + blocked +
+                ", owner=" + owner +
                 '}';
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface IEntityService<T, U> {
 
-    public T create(T entity);
+    public T create(T entity) throws ResourceNotFoundException;
 
     public T update(U id, T entity) throws ResourceNotFoundException;
 

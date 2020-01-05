@@ -64,7 +64,7 @@ public interface UsersApi {
     @RequestMapping(value = "/users",
         produces = { "application/json" }, 
         method = RequestMethod.POST)
-    ResponseEntity<User> create(@ApiParam(value = "Contient le token d'authentification sous la forme `Bearer {token}`" ,required=true) @RequestHeader(value="Authorization", required=true) String authorization,@ApiParam(value = "Utilisateur à créer" ,required=true )  @Valid @RequestBody User body);
+    ResponseEntity<?> create(@ApiParam(value = "Contient le token d'authentification sous la forme `Bearer {token}`" ,required=true) @RequestHeader(value="Authorization", required=true) String authorization,@ApiParam(value = "Utilisateur à créer" ,required=true )  @Valid @RequestBody User body);
 
 
     @ApiOperation(value = "Supprime un utilisateur", nickname = "delete", notes = "Supprime un utilisateur avec `email` comme adresse email. Cette action ne peut qu'être effectué par l'administrateur", tags={ "user", })

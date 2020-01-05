@@ -9,7 +9,6 @@ import ch.heigvd.amt.p2.exception.UnauthorizedAccessException;
 import ch.heigvd.amt.p2.model.User;
 import ch.heigvd.amt.p2.security.CustomUserDetails;
 import ch.heigvd.amt.p2.security.TokenService;
-import ch.heigvd.amt.p2.service.RoleService;
 import ch.heigvd.amt.p2.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
@@ -45,9 +44,6 @@ public class UsersApiController implements UsersApi {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private RoleService roleService;
 
     @Autowired
     private TokenService tokenService;
@@ -89,9 +85,12 @@ public class UsersApiController implements UsersApi {
     }
 
 
-    public ResponseEntity<User> create(@ApiParam(value = "Contient le token d'authentification sous la forme `Bearer {token}`" ,required=true) @RequestHeader(value="Authorization", required=true) String authorization,@ApiParam(value = "Utilisateur à créer" ,required=true )  @Valid @RequestBody User user) {
-        return new ResponseEntity<>(this.userService.create(user), HttpStatus.OK);
-
+    public ResponseEntity<?> create(@ApiParam(value = "Contient le token d'authentification sous la forme `Bearer {token}`" ,required=true) @RequestHeader(value="Authorization", required=true) String authorization,@ApiParam(value = "Utilisateur à créer" ,required=true )  @Valid @RequestBody User user) {
+        try {
+            return new ResponseEntity<>(this.userService.create(user), HttpStatus.OK);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
     }
 
     public ResponseEntity<?> delete(@ApiParam(value = "" ,required=true) @RequestHeader(value="Authorization", required=true) String authorization,@ApiParam(value = "Email de l'utilisateur à supprimer",required=true) @PathVariable("email") String email, Principal principal) {
@@ -107,7 +106,7 @@ public class UsersApiController implements UsersApi {
         } catch (UnauthorizedAccessException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>("Utilisateur (id=" + email + ")supprimé", HttpStatus.OK);
+        return new ResponseEntity<>("Utilisateur (id=" + email + ") supprimé", HttpStatus.OK);
     }
 
     public ResponseEntity<String> forgotPassword(@ApiParam(value = "" ,required=true )  @Valid @RequestBody UserId userId) {
@@ -143,7 +142,7 @@ public class UsersApiController implements UsersApi {
         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken)principal;
         CustomUserDetails userDetails = (CustomUserDetails)token.getPrincipal();
 
-        if (this.roleService.isAdmin(userDetails.getEmail())) {
+        if (this.userService.isAdmin(userDetails.getEmail())) {
             return new ResponseEntity<>(this.userService.get(pgble), HttpStatus.OK);
         }
         else {
