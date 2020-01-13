@@ -100,9 +100,6 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<UserDTO> create(@ApiParam(value = "Utilisateur à créer" ,required=true )  @Valid @RequestBody UserDTO body) {
 
         User user = this.userService.convertToEntity(body);
-        CustomUserDetails userDetails = (CustomUserDetails)SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        user.setOwner(userDetails.getEmail());
         user = this.userService.create(user);
         return new ResponseEntity<>(this.userService.convertToDto(user), HttpStatus.OK);
 
@@ -115,13 +112,11 @@ public class UsersApiController implements UsersApi {
                 .getAuthentication().getPrincipal();
 
         try {
-            this.userService.checkOwner(userDetails.getEmail(), email);
             this.userService.delete(email);
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-        } catch (ForbiddenAccessException ex) {
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
         }
+
         return new ResponseEntity<>("Utilisateur (id=" + email + ") supprimé", HttpStatus.OK);
     }
 
@@ -146,11 +141,7 @@ public class UsersApiController implements UsersApi {
 
         User user = null;
         try {
-            if (this.userService.checkOwner(userDetails.getEmail(), email)) {
-                user = this.userService.get(email);
-            }
-        } catch (ForbiddenAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            user = this.userService.get(email);
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -163,7 +154,7 @@ public class UsersApiController implements UsersApi {
         CustomUserDetails userDetails = (CustomUserDetails)SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        if (this.userService.isAdmin(userDetails.getEmail())) {
+//        if (this.userService.isAdmin(userDetails.getEmail())) {
             Page users = this.userService.get(PageRequest.of(page, pageSize));
 
             // Initialisation de page
@@ -175,20 +166,8 @@ public class UsersApiController implements UsersApi {
             response.setTotalElements(users.getNumberOfElements());
 
             return new ResponseEntity<>(response, HttpStatus.OK);
-        }
-        else {
-            Page users = this.userService.get(userDetails.getEmail(), PageRequest.of(page, pageSize));
 
-            // Initialisation de page
-            PagedResponse response = new PagedResponse();
-            response.setContent(users.getContent());
-            response.setPageNumber(users.getNumber());
-            response.setPageSize(users.getSize());
-            response.setTotalPages(users.getTotalPages());
-            response.setTotalElements(users.getNumberOfElements());
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }
+            // }
     }
 
     @Override
@@ -238,11 +217,12 @@ public class UsersApiController implements UsersApi {
                 .getAuthentication().getPrincipal();
 
         User user = this.userService.convertToEntity(body);
-        user.setOwner(userDetails.getEmail());
 
         try {
-            if (this.userService.checkOwner(userDetails.getEmail(), email)) {
+            if (userDetails.getEmail().equals(email)) {
                 user = this.userService.update(email, user);
+            } else {
+                throw new ForbiddenAccessException("User", email);
             }
         } catch (ForbiddenAccessException ex) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);

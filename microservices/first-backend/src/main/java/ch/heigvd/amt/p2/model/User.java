@@ -23,7 +23,6 @@ public class User implements Serializable {
     private Role role;
 
     private Boolean blocked = false;
-    private String owner;
     
     // -- Constructeur(s)
     public User() {
@@ -85,14 +84,6 @@ public class User implements Serializable {
         this.role = role;
     }
 
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
     @Override
     public String toString() {
         return "User{" +
@@ -102,7 +93,6 @@ public class User implements Serializable {
                 ", password='" + password + '\'' +
                 ", roles=" + role +
                 ", blocked=" + blocked +
-                ", owner=" + owner +
                 '}';
     }
 }

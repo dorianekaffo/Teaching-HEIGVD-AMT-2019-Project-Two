@@ -43,9 +43,10 @@ public class Stepdefs {
         throw new PendingException();
     }
 
-    @Then("^Je reçois une réponse de code (\\d+)$")
-    public void jeReçoisUneRéponseDeCode(int arg0) {
-    }
+//    @Then("^Je reçois une réponse de code (\\d+)$")
+//    public void jeReçoisUneRéponseDeCode(int arg0) {
+//
+//    }
 
     @Given("^J'ai un utilisateur d'identifiant \"([^\"]*)\"$")
     public void jAiUnUtilisateurDIdentifiant(String arg0) throws Throwable {
@@ -63,11 +64,6 @@ public class Stepdefs {
     public void jeFaisUnDELETEVersLeChemin(String arg0) throws Throwable {
         // Write code here that turns the phrase above into concrete actions
         throw new PendingException();
-    }
-
-    @And("^J'obtiens un token d'authentification$")
-    public void jObtiensUnTokenDAuthentification() {
-        this.token = (String)lastApiResponse.getData();
     }
 
     @When("^Je fais un POST vers le chemin /users$")

@@ -43,14 +43,8 @@ public class UserService implements IEntityService<User, String> {
 
     @Override
     public User update(String email, User user) throws ResourceNotFoundException {
-        System.out.println("Voici les valeurs: " + email + " user: " + user);
-
         if (this.userRepository.existsById(email) && user.getEmail() != null) {
-            if (user.getOwner() != null && this.userRepository.existsById(user.getOwner())) {
                 return this.userRepository.save(user);
-            } else {
-                throw new ResourceNotFoundException("User", "email", user.getOwner());
-            }
         } else {
             throw new ResourceNotFoundException("User", "email", email);
         }
@@ -70,10 +64,6 @@ public class UserService implements IEntityService<User, String> {
 
     @Override
     public Page<User> get(Pageable pgble) { return this.userRepository.findAll(pgble);
-    }
-
-    public Page<User> get(String ownerId, Pageable pgble) {
-        return this.userRepository.findByOwner(ownerId, pgble);
     }
 
     public void changeBlockedStatus(String email, boolean willBlock) throws ResourceNotFoundException {
@@ -125,15 +115,6 @@ public class UserService implements IEntityService<User, String> {
         } catch (ResourceNotFoundException ex) {
             return false;
         }
-    }
-
-    public boolean checkOwner(String ownerId, String userId) throws ForbiddenAccessException {
-        if (this.userRepository.existsByEmailAndOwner(userId, ownerId) ||
-            this.isAdmin(ownerId)
-        ) {
-            return true;
-        };
-        throw new ForbiddenAccessException("User", userId);
     }
 
     public boolean isAdmin(String ownerId) {
