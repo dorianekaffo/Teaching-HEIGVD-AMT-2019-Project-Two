@@ -6,7 +6,7 @@
     <name>Second backend</name>
     <version>1.0.0</version>
     <properties>
-        <java.version>11</java.version>
+        <java.version>8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <springfox-version>2.7.0</springfox-version>
@@ -27,6 +27,32 @@
                         <goals>
                             <goal>repackage</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>4.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${basedir}/src/main/resources/specs/api-spec.yaml</inputSpec>
+                            <language>spring</language>
+                            <configOptions>
+                                <dateLibrary>joda</dateLibrary>
+                                <useBeanValidation>true</useBeanValidation>
+                                <interfaceOnly>true</interfaceOnly>
+                                <delegatePattern>false</delegatePattern>
+                                <apiPackage>ch.heigvd.amt.p2.api</apiPackage>
+                                <configPackage>ch.heigvd.amt.p2.api.configuration</configPackage>
+                                <basePackage>ch.heigvd.amt.p2</basePackage>
+                                <modelPackage>ch.heigvd.amt.p2.api.dto</modelPackage>
+                            </configOptions>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -67,6 +93,11 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
         </dependency>
@@ -86,10 +117,12 @@
             <artifactId>jackson-datatype-threetenbp</artifactId>
             <version>2.6.4</version>
         </dependency>
-    	<!-- Bean Validation API support -->
+        <!-- Bean Validation API support -->
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
+            <version>2.0.1.Final</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

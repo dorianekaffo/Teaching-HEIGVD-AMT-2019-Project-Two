@@ -38,14 +38,18 @@ public class CodeService {
                 () -> new ResourceNotFoundException("Code", "User - CodeString - Expired", user + " - " + codeString + " - " + false));
 
         if (code != null) {
+            System.out.println("Expiry Date: " + code.getExpiryDate() + ", Current time: " + Calendar.getInstance().getTime() + " : Compare : " + code.getExpiryDate().before(Calendar.getInstance().getTime()));
+
+            code.setExpired(true);
+            this.codeRepository.save(code);
+
             if (code.getExpiryDate().before(Calendar.getInstance().getTime())) {
-                code.setExpired(true);
-                this.codeRepository.save(code);
                 return false;
             }
 
             return true;
         }
+
         return false;
     };
 }

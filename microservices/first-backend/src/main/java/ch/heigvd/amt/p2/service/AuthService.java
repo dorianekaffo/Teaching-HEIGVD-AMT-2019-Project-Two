@@ -1,6 +1,7 @@
 package ch.heigvd.amt.p2.service;
 
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
+import ch.heigvd.amt.p2.exception.WrongCredentialsException;
 import ch.heigvd.amt.p2.model.User;
 import ch.heigvd.amt.p2.security.CustomUserDetails;
 import ch.heigvd.amt.p2.security.TokenService;
@@ -27,28 +28,28 @@ public class AuthService implements IAuthService {
     private TokenService tokenService;
 
     @Override
-    public String login(String email, String password) throws ResourceNotFoundException {
+    public String login(String email, String password) throws ResourceNotFoundException, WrongCredentialsException {
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
         User user= this.userService.get(email);
 
-            if (passwordEncoder.matches(password, user.getPassword())) {
+        if (passwordEncoder.matches(password, user.getPassword())) {
 
-                CustomUserDetails userDetails = new CustomUserDetails(user);
-                UsernamePasswordAuthenticationToken authentication
-                        = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
+            CustomUserDetails userDetails = new CustomUserDetails(user);
+            UsernamePasswordAuthenticationToken authentication
+                    = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
 
-                String token = tokenService.generateToken(user);
+            String token = tokenService.generateToken(user);
 
-                // -- Ajout de l'objet "Authentication" dans le contexte sécuritaire
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            // -- Ajout de l'objet "Authentication" dans le contexte sécuritaire
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                return token;
-            }
+            return token;
+        }
 
-        return null;
+        throw new WrongCredentialsException();
     }
 
     @Override

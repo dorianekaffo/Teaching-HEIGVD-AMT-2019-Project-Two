@@ -3,6 +3,8 @@ package ch.heigvd.amt.p2.repository;
 import ch.heigvd.amt.p2.model.Course;
 import ch.heigvd.amt.p2.model.Enrollment;
 import ch.heigvd.amt.p2.model.Student;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
@@ -12,10 +14,11 @@ public interface EnrollmentRepository extends PagingAndSortingRepository<Enrollm
 
     Optional<Enrollment> findByStudentAndCourse(Student student, Course course);
 
-    @Query(value = "DELETE FROM Enrollment m WHERE m.course = ?1")
-    void deletionByCourse(Course course);
+    void deleteByCourseId(Long courseId);
 
-    @Query(value = "DELETE FROM Enrollment m WHERE m.student = ?1")
-    void deleteByStudentId(Student student);
+    void deleteByStudentId(Long studentId);
+
+    Page<Enrollment> findByOwner(String owner, Pageable pgble);
+    boolean existsByIdAndOwner(Long id, String owner);
 
 }

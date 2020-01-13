@@ -19,6 +19,8 @@ public class Enrollment implements Serializable {
     @JoinColumn(name="course_id")
     private Course course;
 
+    private String owner;
+
     public Enrollment() { }
 
     public Enrollment(Student student, Course course) {
@@ -48,5 +50,13 @@ public class Enrollment implements Serializable {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 }

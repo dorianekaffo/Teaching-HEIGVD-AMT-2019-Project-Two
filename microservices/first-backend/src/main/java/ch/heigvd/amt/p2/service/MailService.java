@@ -28,6 +28,9 @@ public class MailService {
     private TokenService tokenService;
 
     @Autowired
+    private CodeService codeService;
+
+    @Autowired
     private Mailer mailer;
 
     @Value("${code.default_validity_period}")
@@ -60,7 +63,9 @@ public class MailService {
     public void sendAuthCodeMail(User user) {
 
         final Context ctx = new Context();
-        ctx.setVariable("code", new Code(user, CODE_DEFAULT_VALIDITY_PERIOD));
+        Code code = this.codeService.create(user, CODE_DEFAULT_VALIDITY_PERIOD);
+
+        ctx.setVariable("code", code);
         ctx.setVariable("user", user);
         final String htmlContent = this.templateEngine.process(
                 "auth_code", ctx);

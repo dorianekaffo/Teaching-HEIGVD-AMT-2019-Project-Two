@@ -1,6 +1,8 @@
 #!/bin/bash
-# docker-compose -f docker/runtime/docker-compose.yml up
-cd first-backend-specs
-mvn test
-cd ../second-backend-specs
-mvn test
+./run.sh
+cd ./docker-images/first-backend-specs/
+./run-docker-image.sh
+cd ../second-backend-specs/
+./run-docker-image.sh
+cd ../../docker-topologies/runtime
+docker-compose down

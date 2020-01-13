@@ -1,0 +1,391 @@
+swagger: "2.0"
+info:
+  description: "Ce serveur a été construit dans le cadre du deuxième projet de l'AMT 2019. Ceci regroupe les API du deuxième backend du projet."
+  version: "1.0.0"
+  title: "AMT 2019 - Project Two API - Deuxième backend"
+  termsOfService: ""
+host: "localhost:8080"
+basePath: "/"
+tags:
+  - name: "student"
+    description: "Les opérations sur les étudiants"
+  - name: "course"
+    description: "Les opérations sur les cours"
+  - name: "enrollment"
+    description: "Les opérations sur les enrôlements d'étudiants aux cours"
+schemes:
+  - "http"
+paths:
+  /students:
+    post:
+      tags:
+        - "student"
+      summary: "Créer un étudiant"
+      description: "Créer un étudiant"
+      operationId: "createStudent"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "L'étudiant à créer"
+          required: true
+          schema:
+            $ref: "#/definitions/StudentDto"
+      responses:
+        201:
+          description: "L'étudiant a été créé"
+          schema:
+            $ref: "#/definitions/StudentDto"
+    get:
+      tags:
+        - "student"
+      summary: "Liste de tous les étudiants"
+      description: "Liste complète de tous les étudiants"
+      operationId: "getAllStudents"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "query"
+          name: "page"
+          description: "Numéro de page"
+          type: "integer"
+          default: 0
+        - in: "query"
+          name: "size"
+          description: "Taille de la page"
+          type: "integer"
+          default: 10
+      responses:
+        200:
+          description: "Tous les étudiants"
+          schema:
+            $ref: "#/definitions/PagedResponse"
+  /students/{id}:
+    get:
+      tags:
+        - "student"
+      summary: "Récupère l'étudiant d'identifiant correspondant"
+      description: "Retourne l'étudiant avec l'identifiant `id`"
+      operationId: "getStudent"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Identifiant de l'étudiant"
+          required: true
+          type: "integer"
+      responses:
+        200:
+          description: "Etudiant récupéré"
+          schema:
+            $ref: "#/definitions/StudentDto"
+        400:
+          description: "Identifiant fourni est invalide"
+        404:
+          description: "Personne non trouvée"
+    put:
+      tags:
+        - "student"
+      summary: "Mets à jour l'étudiant d'identifiant correspondant"
+      description: "Mets à jour les attributs de l'étudiant avec pour identifiant `id`"
+      operationId: "updateStudent"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Identifiant de l'étudiant à mettre à jour"
+          required: true
+          type: "integer"
+        - in: "body"
+          name: "body"
+          description: "Etudiant à mettre à jour"
+          required: true
+          schema:
+            $ref: "#/definitions/StudentDto"
+      responses:
+        200:
+          description: "L'étudiant avec l'identifiant correspondant"
+          schema:
+            $ref: "#/definitions/StudentDto"
+        404:
+          description: "L'étudiant est introuvable"
+    delete:
+      tags:
+        - "student"
+      summary: "Supprimer un étudiant"
+      description: "Supprime l'étudiant d'identifiant `id` correspondant ainsi que tout enrôlement lié"
+      operationId: "deleteStudent"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "identifiant de l'étudiant à supprimer"
+          required: true
+          type: "integer"
+      responses:
+        204:
+          description: "Etudiant supprimé"
+        404:
+          description: "L'étudiant est introuvable"
+  /courses:
+    post:
+      tags:
+        - "course"
+      summary: "Crée un cours"
+      description: "Crée un nouveau cours"
+      operationId: "createCourse"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Cours à créer"
+          required: true
+          schema:
+            $ref: "#/definitions/CourseDto"
+      responses:
+        201:
+          description: "Le cours a été créé"
+          schema:
+            $ref: "#/definitions/CourseDto"
+    get:
+      tags:
+        - "course"
+      summary: "Liste de tous les cours"
+      description: "Liste complète de tous les cours"
+      operationId: "getAllCourses"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "query"
+          name: "page"
+          description: "Numéro de page"
+          type: "integer"
+          default: 0
+        - in: "query"
+          name: "size"
+          description: "Taille de la page"
+          type: "integer"
+          default: 10
+      responses:
+        default:
+          description: "Tous les cours"
+          schema:
+            $ref: "#/definitions/PagedResponse"
+  /courses/{id}:
+    get:
+      tags:
+        - "course"
+      summary: "Récupère le cours avec l'identifiant correspondant"
+      description: "Récupère le cours d'identifiant `id`"
+      operationId: "getCourse"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "L'identifiant du cours"
+          required: true
+          type: "integer"
+      responses:
+        200:
+          description: "Cours récupéré"
+          schema:
+            $ref: "#/definitions/CourseDto"
+        403:
+          description: "Accès refusé"
+        404:
+          description: "Le cours est introuvable"
+    put:
+      tags:
+        - "course"
+      summary: "Mettre à jour un cours"
+      description: "Mets à jour les informations sur le cours"
+      operationId: "updateCourse"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "identifiant du cours à mettre à jour"
+          required: true
+          type: "integer"
+        - in: "body"
+          name: "body"
+          description: "Le cours à mettre à jour"
+          required: true
+          schema:
+            $ref: "#/definitions/CourseDto"
+      responses:
+        200:
+          description: "Cours mis à jour"
+          schema:
+            $ref: "#/definitions/CourseDto"
+        403:
+          description: "Accès refusé"
+        404:
+          description: "Le cours est introuvable"
+    delete:
+      tags:
+        - "course"
+      summary: "Supprime un cours"
+      description: "Supprime un cours ainsi que tout enrôlements lié"
+      operationId: "deleteCourse"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "identifiant du cours à supprimer"
+          required: true
+          type: "integer"
+      responses:
+        204:
+          description: "Cours supprimé"
+        403:
+          description: "Accès refusé"
+        404:
+          description: "Le cours est introuvable"
+  /enrollments:
+    post:
+      tags:
+        - "enrollment"
+      summary: "Enrôle un étudiant à un cours"
+      description: "Enrôle un étudiant à un cours"
+      operationId: "createEnrollment"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "L'enrôlement à créer"
+          required: true
+          schema:
+            $ref: "#/definitions/EnrollmentDto"
+      responses:
+        201:
+          description: "Enrôlement créé"
+          schema:
+            $ref: "#/definitions/EnrollmentDto"
+    get:
+      tags:
+        - "enrollment"
+      summary: "Recupére tous les enrôlements"
+      description: "Récupère tous les enrôlements"
+      operationId: "getAllEnrollments"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "query"
+          name: "page"
+          description: "Numéro de page"
+          type: "integer"
+          default: 0
+        - in: "query"
+          name: "size"
+          description: "Taille de la page"
+          type: "integer"
+          default: 10
+      responses:
+        200:
+          description: "Toutes les associations entre personne et groupe"
+          schema:
+            $ref: "#/definitions/PagedResponse"
+  /enrollments/{id}:
+    get:
+      tags:
+        - "enrollment"
+      summary: "Récupère l'enrôlement d'un étudiant à un cours"
+      description: "Récupère l'enrôlement d'un étudiant à un cours"
+      operationId: "getEnrollment"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Identifiant de l'enrôlement"
+          type: "integer"
+          required: true
+      responses:
+        200:
+          description: "Enrôlement réussi"
+          schema:
+            $ref: "#/definitions/EnrollmentDto"
+        403:
+          description: "Accès refusé"
+        404:
+          description: "Enrôlement introuvable"
+    delete:
+      tags:
+        - "enrollment"
+      summary: "Annule l'enrôlement d'un étudiant à un cous"
+      description: "Annule l'enrôlement d'un étudiant à un cours"
+      operationId: "deleteEnrollment"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "id"
+          description: "Identifiant de l'enrôlement"
+          type: "integer"
+          required: true
+      responses:
+        204:
+          description: "Enrôlement supprimé"
+        403:
+          description: "Accès refusé"
+        404:
+          description: "Enrôlement introuvable"
+definitions:
+  StudentDto:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      firstname:
+        type: "string"
+      lastname:
+        type: "string"
+      owner:
+        type: "string"
+  CourseDto:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      title:
+        type: "string"
+      owner:
+        type: "string"
+  EnrollmentDto:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      student:
+        type: "integer"
+      course:
+        type: "integer"
+      owner:
+        type: "string"
+  PagedResponse:
+    type: "object"
+    properties:
+      content:
+        type: "array"
+        items:
+          type: "object"
+      pageNumber:
+        type: "integer"
+        default: 0
+      pageSize:
+        type: "integer"
+        default: 10
+      totalPages:
+        type: "integer"
+      totalElements:
+        type: "integer"

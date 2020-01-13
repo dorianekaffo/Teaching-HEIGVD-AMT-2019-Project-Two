@@ -46,7 +46,7 @@
               <goal>generate</goal>
             </goals>
             <configuration>
-              <inputSpec>src/main/resources/api-spec.yml</inputSpec>
+              <inputSpec>src/main/resources/api-spec.yaml</inputSpec>
               <generatorName>java</generatorName>
               <!--
               <library>jersey2</library>
@@ -75,6 +75,7 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>

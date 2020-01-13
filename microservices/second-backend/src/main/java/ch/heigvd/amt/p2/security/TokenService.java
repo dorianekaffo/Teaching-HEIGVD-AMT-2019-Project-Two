@@ -27,7 +27,7 @@ public class TokenService {
         return claims.getSubject();
     }
 
-    public String getRolesFromJWT(String token) {
+    public String getRoleFromJWT(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(JWT_SECRET)
                 .parseClaimsJws(token)

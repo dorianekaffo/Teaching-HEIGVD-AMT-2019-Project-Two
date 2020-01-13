@@ -1,25 +1,37 @@
 Feature: Fonctionnalités CRUD sur l'entité "Département"
 
-  Scenario: Création d'un cours d'identifiant 10
-    Given Je veux créer un departement d'identifiant 10 et d'intitulé "Programmation"
-    When Je fais un POST vers le chemin "/courses"
+  Background: S'authentifier
+    Given Il y a un serveur d'authentification
+    And Je m'authentifie avec l'email "doriane.tedongmokaffo@heig-vd.ch" et le mot de passe "administrator"
+
+  Scenario: Création d'un cours
+    Given J'ai un cours à ajouter
+    When Je fais un POST vers le chemin /courses pour créer un cours
+    And Je reçois une réponse de code 201
+    And Je fais un GET pour récupérer mon nouveau cours
+    Then Je reçois une réponse de code 200
+    And Les cours correspondent
+
+  Scenario: Récupèration de tous les cours
+    When Je fais un GET vers le chemin /courses avec le numéro de page 1 et la taille de page 25
+    Then Je reçois une réponse de code 200
+    And Le résultat est sous forme paginée
+
+  Scenario: Récupération d'un cours
+    Given J'ai l'identifiant 1 d'une ressource
+    When Je fais un GET vers le chemin /courses/1
     Then Je reçois une réponse de code 200
 
-  Scenario: Récupèration de tous les départements
-    When Je fais un GET vers le chemin "/departments?page=1&sort=name,asc"
+  Scenario: Mise à jour du cours
+    Given J'ai l'identifiant 1 d'une ressource
+    And J'ai un cours à mettre à jour
+    When Je fais un PUT vers le chemin /courses/1 avec des données
     Then Je reçois une réponse de code 200
+    And Le cours est mis à jour
 
-  Scenario: Récupération du département d'identifiant 10
-    Given J'ai l'identifiant 10 d'un département
-    When Je fais un GET vers le chemin "/departments/10"
-    Then Je reçois une réponse de code 200
-
-  Scenario: Mise à jour du département d'identifiant 10
-    Given J'ai l'identifiant 10 d'un département
-    When Je fais un PUT vers le chemin "/departments/10"
-    Then Je reçois une réponse de code 200
-
-  Scenario: Suppression du département d'identifiant 10
-    Given J'ai l'identifiant 10 d'un département
-    When Je fais un DELETE vers le chemin "/departments/10"
-    Then Je reçois une réponse de code 200
+  Scenario: Suppression du cours
+    Given J'ai l'identifiant 1 d'une ressource
+    When Je fais un DELETE vers le chemin /courses/1 pour le supprimer
+    And Je reçois une réponse de code 204
+    When Je fais un GET vers le chemin /courses/1
+    Then Je reçois une réponse de code 404

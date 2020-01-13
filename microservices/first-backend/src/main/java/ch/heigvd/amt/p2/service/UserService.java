@@ -1,8 +1,10 @@
 package ch.heigvd.amt.p2.service;
 
+import ch.heigvd.amt.p2.api.dto.UserDTO;
 import ch.heigvd.amt.p2.enums.Role;
+import ch.heigvd.amt.p2.exception.PasswordMismatchException;
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
-import ch.heigvd.amt.p2.exception.UnauthorizedAccessException;
+import ch.heigvd.amt.p2.exception.ForbiddenAccessException;
 import ch.heigvd.amt.p2.model.User;
 import ch.heigvd.amt.p2.repository.IUserRepository;
 import ch.heigvd.amt.p2.security.TokenService;
@@ -34,18 +36,15 @@ public class UserService implements IEntityService<User, String> {
     private TokenService tokenService;
 
     @Override
-    public User create(User user) throws ResourceNotFoundException {
-
-        if (user.getOwner() != null && this.userRepository.existsById(user.getOwner())) {
-            return this.userRepository.save(user);
-        } else {
-            throw new ResourceNotFoundException("User", "email", user.getOwner());
-        }
-
+    public User create(User user) {
+        user.setPassword(this.passwordEncoder.encode(user.getPassword()));
+        return this.userRepository.save(user);
     }
 
     @Override
     public User update(String email, User user) throws ResourceNotFoundException {
+        System.out.println("Voici les valeurs: " + email + " user: " + user);
+
         if (this.userRepository.existsById(email) && user.getEmail() != null) {
             if (user.getOwner() != null && this.userRepository.existsById(user.getOwner())) {
                 return this.userRepository.save(user);
@@ -89,11 +88,13 @@ public class UserService implements IEntityService<User, String> {
         }
     }
 
-    public void changePassword(String email, String oldPassword, String newPassword) throws ResourceNotFoundException {
+    public void changePassword(String email, String oldPassword, String newPassword) throws ResourceNotFoundException, PasswordMismatchException {
         User user = this.get(email);
         if (passwordEncoder.matches(oldPassword, user.getPassword())) {
             user.setPassword(passwordEncoder.encode(newPassword));
             this.userRepository.save(user);
+        } else {
+            throw new PasswordMismatchException();
         }
     }
 
@@ -126,17 +127,39 @@ public class UserService implements IEntityService<User, String> {
         }
     }
 
-    public boolean checkOwner(String ownerId, String userId) throws UnauthorizedAccessException {
+    public boolean checkOwner(String ownerId, String userId) throws ForbiddenAccessException {
         if (this.userRepository.existsByEmailAndOwner(userId, ownerId) ||
             this.isAdmin(ownerId)
         ) {
             return true;
         };
-        throw new UnauthorizedAccessException("User", userId);
+        throw new ForbiddenAccessException("User", userId);
     }
 
     public boolean isAdmin(String ownerId) {
         return this.userRepository.existsByEmailAndRole(ownerId, Role.ADMIN);
+    }
+
+    public UserDTO convertToDto(User user) {
+        UserDTO userDto = new UserDTO();
+        userDto.setEmail(user.getEmail());
+        userDto.setFirstName(user.getFirstname());
+        userDto.setLastName(user.getLastname());
+        userDto.setPassword(user.getPassword());
+        userDto.setRole(user.getRole().toString());
+        userDto.setBlocked(user.getBlocked());
+        return userDto;
+    }
+
+    public User convertToEntity(UserDTO userDto) {
+        User user = new User();
+        user.setEmail(userDto.getEmail());
+        user.setFirstname(userDto.getFirstName());
+        user.setLastname(userDto.getLastName());
+        user.setPassword(userDto.getPassword());
+        user.setRole(Role.valueOf(userDto.getRole()));
+        user.setBlocked(userDto.getBlocked());
+        return user;
     }
 
 }

@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -40,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 String uid = tokenService.getUidFromJWT(jwt);
                 List<GrantedAuthority> authorities = new ArrayList<>();
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + tokenService.getRolesFromJWT(jwt)));
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + tokenService.getRoleFromJWT(jwt)));
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(uid, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

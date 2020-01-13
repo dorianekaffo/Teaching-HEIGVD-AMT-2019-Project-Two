@@ -1,2 +1,4 @@
 #!/bin/bash
-docker-compose -f docker/runtime/docker-compose.yml up --remove-orphan
+cd ./docker-topologies/runtime
+docker-compose up
+sleep 30

@@ -20,15 +20,10 @@ paths:
       - "user"
       summary: "Créer un utilisateur"
       description: "Crée un nouvel utilisateur"
-      operationId: "createUser"
+      operationId: "create"
       produces:
       - "application/json"
       parameters:
-      - in: header
-        name: Authorization
-        description: "Contient le token d'authentification sous la forme `Bearer {token}`"
-        type: string
-        required: true
       - in: "body"
         name: "body"
         description: "Utilisateur à créer"
@@ -45,33 +40,25 @@ paths:
       - "user"
       summary: "Liste de tous les utilisateurs"
       description: "Liste complète de tous les utilisateurs"
-      operationId: "getUsers"
+      operationId: "getAll"
       produces:
       - "application/json"
-      parameters:
-      - in: header
-        name: Authorization
-        description: "Contient le token d'authentification sous la forme `Bearer {token}`"
-        type: string
-        required: true
+      parameters: []
       responses:
         default:
           description: "Tous les utilisateurs"
+          schema:
+            $ref: "#/definitions/PagedResponse"
   /users/{email}:
     get:
       tags:
       - "user"
       summary: "Récupère un utilisateur avec l'email correspondant"
       description: "Récupère un utilisateur avec l'`email` correspondant"
-      operationId: "getUserByName"
+      operationId: "get"
       produces:
       - "application/json"
       parameters:
-      - in: header
-        name: Authorization
-        description: "Contient le token d'authentification sous la forme `Bearer {token}`"
-        type: string
-        required: true
       - name: "email"
         in: "path"
         description: "Email de l'utilisateur à récupérer"
@@ -91,15 +78,10 @@ paths:
       - "user"
       summary: "Mettre à jour un utilisateur"
       description: "Mets à jour l'utilisateur avec l'`email` correspondant. Ne peut qu'être fait par un utilisateur connecté"
-      operationId: "updateUser"
+      operationId: "update"
       produces:
       - "application/json"
       parameters:
-      - in: header
-        name: Authorization
-        description: "Contient le token d'authentification sous la forme `Bearer {token}`"
-        type: string
-        required: true
       - name: "email"
         in: "path"
         description: "email de l'utilisateur à mettre à jour"
@@ -121,14 +103,10 @@ paths:
       - "user"
       summary: "Supprime un utilisateur"
       description: "Supprime un utilisateur avec `email` comme adresse email. Cette action ne peut qu'être effectué par l'administrateur"
-      operationId: "deleteUser"
+      operationId: "delete"
       produces:
       - "application/json"
       parameters:
-      - in: header
-        name: Authorization
-        type: string
-        required: true
       - name: "email"
         in: "path"
         description: "Email de l'utilisateur à supprimer"
@@ -145,14 +123,10 @@ paths:
       - "user"
       summary: "Bloque l'utilisateur ayant l'email correspondant"
       description: "Bloque l'utilisateur ayant l'`email` correspondant"
-      operationId: "blockUser"
+      operationId: "block"
       produces:
       - "application/json"
       parameters:
-      - in: header
-        name: Authorization
-        type: string
-        required: true
       - in: path
         name: email
         type: "string"
@@ -165,14 +139,10 @@ paths:
       - "user"
       summary: "Débloque l'utilisateur ayant l'email correspondant"
       description: "Débloque l'utilisateur ayant l'email correspondant"
-      operationId: "unblockUSer"
+      operationId: "unblock"
       produces:
       - "application/json"
       parameters:
-      - in: header
-        name: Authorization
-        type: string
-        required: true
       - in: path
         name: email
         type: "string"
@@ -192,10 +162,6 @@ paths:
       produces:
       - "application/json"
       parameters:
-      - in: header
-        name: Authorization
-        type: string
-        required: true
       - in: "body"
         name: "changePassword"
         required: true
@@ -278,7 +244,7 @@ paths:
       - "user"
       summary: "Envoi un code vers à l'adresse mail renseigné"
       description: "Envoi un code vers l'adresse mail correspondant"
-      operationId: "getCode"
+      operationId: "sendCode"
       produces:
       - "application/json"
       parameters:
@@ -319,7 +285,7 @@ paths:
       - "auth"
       summary: "Se connecter à la plateforme"
       description: "Se connecter à la plateforme en fournissant les identifiants"
-      operationId: "loginUser"
+      operationId: "login"
       produces:
       - "application/json"
       parameters:
@@ -347,15 +313,10 @@ paths:
       - "auth"
       summary: "Se déconnecter de la plateforme"
       description: "Se déconnecter de la plateforme"
-      operationId: "logoutUser"
+      operationId: "logout"
       produces:
       - "application/json"
-      parameters:
-      - in: header
-        name: Authorization
-        description: "Contient le token d'authentification sous la forme `Bearer {token}`"
-        type: string
-        required: true
+      parameters: []
       responses:
         default:
           description: "Opération réussie"
@@ -371,17 +332,23 @@ definitions:
         type: "string"
       lastName:
         type: "string"
-      roles:
-        type: "array"
-        items:
-          $ref: "#/definitions/Role"
+      role:
+        type: "string"
       blocked:
         type: "boolean"
         default: false
-  Role:
-    type: "object"
+  PagedResponse:
+    type: object
     properties:
-      id:
-        type: "number"
-      type:
-        type: "string"
+      content:
+        type: object
+      pageNumber:
+        type: number
+        default: 1
+      pageSize:
+        type: number
+        default: 1
+      totalPages:
+        type: number
+      totalElements:
+        type: number

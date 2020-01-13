@@ -1,6 +1,4 @@
-
 #!/bin/bash
-
 mkdir tmp
 
 mvn clean package -f ../../microservices/second-backend/pom.xml

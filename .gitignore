@@ -58,3 +58,8 @@ microservices/first-backend-specs/*.iml
 
 .idea/
 *.iml
+
+docker-images/first-backend/tmp/
+docker-images/first-backend-specs/tmp/
+docker-images/second-backend/tmp/
+docker-images/second-backend-specs/tmp/

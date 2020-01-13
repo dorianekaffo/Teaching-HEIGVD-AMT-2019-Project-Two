@@ -1,6 +1,11 @@
 package ch.heigvd.amt.p2.steps;
 
+import ch.heigvd.amt.p2.dto.CourseDto;
+import ch.heigvd.amt.p2.dto.EnrollmentDto;
+import ch.heigvd.amt.p2.dto.PagedResponse;
+import ch.heigvd.amt.p2.dto.StudentDto;
 import cucumber.api.PendingException;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -12,28 +17,47 @@ import ch.heigvd.amt.p2.api.EnrollmentApi;
 import ch.heigvd.amt.p2.dto.Course;
 import ch.heigvd.amt.p2.dto.Enrollment;
 import ch.heigvd.amt.p2.dto.Student;
+import okhttp3.*;
+import okio.BufferedSink;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joda.time.DateTime;
 
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-
 import java.io.IOException;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class Stepdefs {
 
     // private final DefaultApi api = new DefaultApi();
 
-    private CourseApi api = new CourseApi();
-    private Course course;
+    private CourseApi courseApi = new CourseApi();
+    private StudentApi studentApi = new StudentApi();
+    private EnrollmentApi enrollmentApi = new EnrollmentApi();
+
+    private Integer id;
+
+    private CourseDto course;
+    private StudentDto student;
+    private EnrollmentDto enrollment;
+
     private ApiResponse lastApiResponse;
     private ApiException lastApiException;
     private boolean lastApiCallThrewException;
 
+    private String token;
+
+    @Given("^there is a second server")
+    public void there_is_a_second_server() throws Throwable {
+        Properties properties = new Properties();
+        properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
+
+        String secondServerUrl = properties.getProperty("io.openaffect.server.url");
+        courseApi.getApiClient().setBasePath(secondServerUrl);
+    }
 
     @Then("^Je reçois une réponse de code (\\d+)$")
     public void jeReçoisUneRéponseDeCode(int arg0) {
@@ -44,10 +68,16 @@ public class Stepdefs {
         }
     }
 
-    @When("^Je fais un POST vers le chemin \"([^\"]*)\"$")
-    public void jeFaisUnPOSTVersLeChemin(String arg0) throws Throwable {
+    @Given("^J'ai un cours à créer$")
+    public void jAiUnCoursÀCréer() {
+        Course course = new Course();
+        course.setName("Programmation");
+    }
+
+    @When("^Je fais un POST pour créer un étudiant$")
+    public void jeFaisUnPOSTPourCréerUnÉtudiant() {
         try {
-            lastApiResponse = api.createCourseWithHttpInfo(course);
+            lastApiResponse = courseApi.createCourseWithHttpInfo(course);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
             lastApiCallThrewException = true;
@@ -55,57 +85,20 @@ public class Stepdefs {
         }
     }
 
-    @Given("^Je veux créer un departement d'identifiant (\\d+) et d'intitulé \"([^\"]*)\"$")
-    public void jeVeuxCréerUnDepartementDIdentifiantEtDIntitulé(int arg0, String arg1) throws Throwable {
-        // Write code here that turns the phrase above into concrete actions
-        this.course = new Course();
-        this.course.setId((long) arg0);
-        this.course.setName(arg1);
+    @Then("^Je vois mon cours$")
+    public void jeVoisMonCours() {
+        (PagedResponse)lastApiResponse.getData()
     }
 
-    /*
-
-        @Given("^there is an OpenAffect server")
-    public void there_is_an_OpenAffect_server() throws Throwable {
-        Properties properties = new Properties();
-        properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
-        String url = properties.getProperty("io.openaffect.server.url");
-        api.getApiClient().setBasePath(url);
+    @And("^Le résultat est sous forme paginée$")
+    public void leRésultatEstSousFormePaginéé() {
+        assertTrue(lastApiResponse.getData() instanceof PagedResponse);
     }
 
-    @Given("^I have an affective payload$")
-    public void i_have_an_affective_payload() throws Throwable {
-        Resource sensor = new Resource();
-        sensor.setHref("https://cucumber.io");
-        sensor.setType("testing tool");
-
-        Resource subject = new Resource();
-        subject.setHref("https://github.com/wasadigi");
-        subject.setType("person");
-        subject.getProperties().put("login", "wasadigi");
-        subject.getProperties().put("name", "Olivier Liechti");
-
-        Resource trigger = new Resource();
-        trigger.setType("project");
-        trigger.setHref("agent");
-        trigger.getProperties().put("name", "Open Affect Server");
-
-        Emotion emotion = new Emotion();
-        emotion.setCategory("joy");
-        emotion.setIntensity(1.0);
-
-        measure = new Measure();
-        measure.setSensor(sensor);
-        measure.setSubject(subject);
-        measure.setTimestamp(DateTime.now());
-        measure.setTrigger(trigger);
-        measure.setEmotion(emotion);
-    }
-
-    @When("^I POST it to the /measures endpoint$")
-    public void i_POST_it_to_the_measures_endpoint() throws Throwable {
+    @When("^Je fais un GET vers le chemin /courses avec le numéro de page (\\d+) et la taille de page (\\d+)$")
+    public void jeFaisUnGETVersLeCheminCoursesAvecLeNuméroDePageEtLaTailleDePage(int pageNumber, int pageSize) {
         try {
-            lastApiResponse = api.reportMeasureWithHttpInfo(measure);
+            lastApiResponse = courseApi.getAllCoursesWithHttpInfo(pageNumber, pageSize);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
             lastApiCallThrewException = true;
@@ -113,9 +106,115 @@ public class Stepdefs {
         }
     }
 
-    @When("^I do a GET on the /measures endpoint$")
-    public void i_do_a_GET_on_the_measures_endpoint() throws Throwable {
+    @When("^Je fais un GET vers le chemin /students\\?page=(\\d+)&size=(\\d+)$")
+    public void jeFaisUnGETVersLeCheminStudentsPageSize(int pageNumber, int pageSize) {
+        try {
+            lastApiResponse = studentApi.getAllStudentsWithHttpInfo(pageNumber, pageSize);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
 
+    @Given("^J'ai un cours à ajouter$")
+    public void jAiUnCoursÀAjouter() {
+        course = new CourseDto();
+        course.setTitle("BDD avec Cucumber");
+    }
+
+    @When("^Je fais un POST vers le chemin /courses pour créer un cours$")
+    public void jeFaisUnPOSTVersLeCheminCoursesPourCréerUnCours() {
+        try {
+            lastApiResponse = courseApi.createCourseWithHttpInfo(course);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @And("^Je fais un GET pour récupérer mon nouveau cours$")
+    public void jeFaisUnGETPourRécupérerMonNouveauCours() {
+        try {
+            assertTrue(lastApiResponse.getData() instanceof CourseDto);
+            lastApiResponse = courseApi.getCourseWithHttpInfo(((CourseDto)lastApiResponse.getData()).getId());
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @And("^Les cours correspondent$")
+    public void lesCoursCorrespondent() {
+        assertTrue(lastApiResponse.getData() instanceof CourseDto);
+        assertEquals(((CourseDto)lastApiResponse.getData()).getTitle(), this.course.getTitle());
+    }
+
+    @Given("^J'ai l'identifiant (\\d+) d'une ressource$")
+    public void jAiLIdentifiantDUneRessource(int identifiant) {
+        this.id = identifiant;
+    }
+
+
+    @And("^J'ai un cours à mettre à jour$")
+    public void jAiUnCoursÀMettreÀJour() {
+        course = new CourseDto();
+        course.setId(this.id);
+        course.setTitle("Premier pas avec Spring Boot");
+    }
+
+    @When("^Je fais un PUT vers le chemin /courses/(\\d+) avec des données$")
+    public void jeFaisUnPUTVersLeCheminCoursesAvecDesDonnées(int arg0) {
+        try {
+            lastApiResponse = courseApi.updateCourseWithHttpInfo(this.id, this.course);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @When("^Je fais un GET vers le chemin /courses/(\\d+)$")
+    public void jeFaisUnGETVersLeCheminCourses(int identifiant) {
+        try {
+            lastApiResponse = courseApi.getCourseWithHttpInfo(identifiant);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @When("^Je fais un DELETE vers le chemin /courses/(\\d+) pour le supprimer$")
+    public void jeFaisUnDELETEVersLeCheminCoursesPourLeSupprimer(int identifiant) {
+        try {
+            lastApiResponse = courseApi.deleteCourseWithHttpInfo(identifiant);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @When("^Je fais un PUT vers le chemin /students/(\\d+)$")
+    public void jeFaisUnPUTVersLeCheminStudents(int identifiant) {
+        try {
+            lastApiResponse = studentApi.updateStudentWithHttpInfo(identifiant, student);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @And("^Je veux mettre à jour l'étudiant correspondant$")
+    public void jeVeuxMettreÀJourLÉtudiantCorrespondant() {
+        student = new StudentDto();
+        student.setId(this.id);
+        student.setFirstname("Olivier");
+        student.setLastname("Liechti");
     }
 
     @Then("^I receive a (\\d+) status code$")
@@ -127,11 +226,100 @@ public class Stepdefs {
         }
     }
 
-    @Then("^the payload is a non-empty list$")
-    public void the_payload_is_a_non_empty_list() throws Throwable {
-        List list = (List) lastApiResponse.getData();
-        assertNotEquals(0, list.size());
+    @When("^Je fais un GET vers le chemin /students/(\\d+)$")
+    public void jeFaisUnGETVersLeCheminStudents(int identifiant) {
+        try {
+            lastApiResponse = studentApi.getStudentWithHttpInfo(identifiant);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
     }
 
-    */
+    @When("^Je fais un DELETE vers le chemin /students/(\\d+)$")
+    public void jeFaisUnDELETEVersLeCheminStudents(int identifiant) {
+        try {
+            lastApiResponse = studentApi.deleteStudentWithHttpInfo(identifiant);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @When("^Je fais un POST vers le chemin /students$")
+    public void jeFaisUnPOSTVersLeCheminStudents() {
+        try {
+            lastApiResponse = studentApi.createStudentWithHttpInfo(student);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @Given("^Je veux créer un étudiant de prenom \"([^\"]*)\" et de nom \"([^\"]*)\"$")
+    public void jeVeuxCréerUnÉtudiantDePrenomEtDeNom(String firstname, String lastname) throws Throwable {
+       student = new StudentDto();
+       student.setFirstname(firstname);
+       student.setLastname(lastname);
+    }
+
+    @Given("^Je m'authentifie avec l'email \"([^\"]*)\" et le mot de passe \"([^\"]*)\"$")
+    public void jeMAuthentifieAvecLEmailEtLeMotDePasse(String arg0, String arg1) throws Throwable {
+        Properties properties = new Properties();
+        properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
+
+        System.out.println("Properties: " + properties);
+        OkHttpClient client = new OkHttpClient();
+        String authServerUrl = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
+
+        System.out.println("Auth Server URL: " + authServerUrl);
+
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        RequestBody requestBody = RequestBody.create(JSON, "{\"email\": " + arg0 + ", \"password\" : " + arg1 + "}");
+        Request request = new Request.Builder().url(authServerUrl + "/auth/login").post(requestBody).build();
+        Response response = client.newCall(request).execute();
+
+        System.out.println("La réponse: " + response);
+        assertTrue(response.isSuccessful());
+        this.token = response.body().toString();
+        System.out.println("Le token: " + this.token);
+        assertFalse(this.token.isEmpty());
+    }
+
+    @When("^Je fais un POST vers le chemin /enrollments$")
+    public void jeFaisUnPOSTVersLeCheminEnrollments() {
+        try {
+            lastApiResponse = enrollmentApi.createEnrollmentWithHttpInfo(enrollment);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+
+    @When("^Je fais un DELETE vers le chemin /enrollments/(\\d+)$")
+    public void jeFaisUnDELETEVersLeCheminEnrollments(int arg0) {
+        try {
+            lastApiResponse = enrollmentApi.deleteEnrollmentWithHttpInfo(arg0);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @When("^Je fais un POST vers le chemin /enrollments\\?page=(\\d+)&size=(\\d+)$")
+    public void jeFaisUnPOSTVersLeCheminEnrollmentsPageSize(int arg0, int arg1) {
+        try {
+            lastApiResponse = enrollmentApi.getAllEnrollmentsWithHttpInfo(arg0, arg1);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
 }

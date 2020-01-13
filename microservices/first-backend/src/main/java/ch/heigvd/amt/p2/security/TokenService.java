@@ -31,6 +31,7 @@ public class TokenService {
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate.getTime())
                 .signWith(SignatureAlgorithm.HS512, JWT_SECRET)
+                .claim("role", user.getRole().toString())
                 .compact();
 
     }
@@ -45,6 +46,7 @@ public class TokenService {
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate.getTime())
                 .signWith(SignatureAlgorithm.HS512, JWT_SECRET)
+                .claim("role", user.getRole().toString())
                 .compact();
     }
 

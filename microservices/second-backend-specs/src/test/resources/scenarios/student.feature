@@ -1,25 +1,30 @@
 Feature: Fonctionnalités CRUD sur l'entité "Employé"
 
-  Scenario: Création d'un employé d'identifiant 10
-    Given Je veux créer un employé d'identifiant 10 et de nom "Carl Friedrich Gauss"
-    When Je fais un POST vers le chemin "/employees"
+  Background: S'authentifier
+    Given Je m'authentifie avec l'email "doriane.tedongmokaffo@heig-vd.ch" et le mot de passe "administrator"
+
+  Scenario: Création d'un étudiant
+    Given Je veux créer un étudiant de prenom "Olivier" et de nom "Liechti"
+    When Je fais un POST vers le chemin /students
+    Then Je reçois une réponse de code 201
+
+  Scenario: Récupèration de tous les étudiants
+    When Je fais un GET vers le chemin /students?page=0&size=25
+    Then Je reçois une réponse de code 200
+    And Le résultat est sous forme paginée
+
+  Scenario: Récupération de l'étudiant
+    Given J'ai l'identifiant 1 d'une ressource
+    When Je fais un GET vers le chemin /students/1
     Then Je reçois une réponse de code 200
 
-  Scenario: Récupèration de tous les employées
-    When Je fais un GET vers le chemin "/employees?page=1&sort=name,asc"
+  Scenario: Mise à jour d'un étudiant
+    Given J'ai l'identifiant 1 d'une ressource
+    And Je veux mettre à jour l'étudiant correspondant
+    When Je fais un PUT vers le chemin /students/1
     Then Je reçois une réponse de code 200
 
-  Scenario: Récupération de l'employé d'identifiant 10
-    Given J'ai l'identifiant 10 d'un employé
-    When Je fais un GET vers le chemin "/employees/10"
-    Then Je reçois une réponse de code 200
-
-  Scenario: Mise à jour de l'employé d'identifiant 10
-    Given J'ai l'identifiant 10 d'un employé
-    When Je fais un PUT vers le chemin "/employees/10"
-    Then Je reçois une réponse de code 200
-
-  Scenario: Suppression de l'employé d'identifiant 10
-    Given J'ai l'identifiant 10 d'un employé
-    When Je fais un DELETE vers le chemin "/employees/10"
-    Then Je reçois une réponse de code 200
+  Scenario: Suppression d'un étudiant
+    Given J'ai l'identifiant 1 d'une ressource
+    When Je fais un DELETE vers le chemin /students/1
+    Then Je reçois une réponse de code 204

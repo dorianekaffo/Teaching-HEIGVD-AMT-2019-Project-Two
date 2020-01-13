@@ -12,19 +12,15 @@ public class Course implements Serializable {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
-    private String name;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "course")
-    private Set<Enrollment> enrollments;
+    private String title;
 
     private String owner;
 
     // -- Constructeur
     public Course() {}
 
-    public Course(String name) {
-        this.name = name;
+    public Course(String title) {
+        this.title = title;
     }
 
     // -- Getter(s) et Setter(s)
@@ -36,12 +32,12 @@ public class Course implements Serializable {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getTitle() {
+        return title;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTitle(String name) {
+        this.title = name;
     }
 
     public String getOwner() {
