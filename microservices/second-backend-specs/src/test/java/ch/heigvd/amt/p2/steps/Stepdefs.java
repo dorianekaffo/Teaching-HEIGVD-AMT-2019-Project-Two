@@ -55,8 +55,11 @@ public class Stepdefs {
         Properties properties = new Properties();
         properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
 
-        String secondServerUrl = properties.getProperty("io.openaffect.server.url");
+        // Initialisation du second serveur
+        String secondServerUrl = properties.getProperty("ch.heigvd.amt.p2.second-server.url");
         courseApi.getApiClient().setBasePath(secondServerUrl);
+        studentApi.getApiClient().setBasePath(secondServerUrl);
+
     }
 
     @Then("^Je reçois une réponse de code (\\d+)$")
@@ -322,4 +325,5 @@ public class Stepdefs {
             lastApiException = e;
         }
     }
+
 }

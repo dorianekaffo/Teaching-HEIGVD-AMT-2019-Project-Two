@@ -4,7 +4,6 @@ import ch.heigvd.amt.p2.api.dto.UserDTO;
 import ch.heigvd.amt.p2.enums.Role;
 import ch.heigvd.amt.p2.exception.PasswordMismatchException;
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
-import ch.heigvd.amt.p2.exception.ForbiddenAccessException;
 import ch.heigvd.amt.p2.model.User;
 import ch.heigvd.amt.p2.repository.IUserRepository;
 import ch.heigvd.amt.p2.security.TokenService;
@@ -18,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 
 
 @Service
-public class UserService implements IEntityService<User, String> {
+public class UserService implements IUserService<String, User> {
 
     @Autowired
     private IUserRepository userRepository;
@@ -42,43 +41,7 @@ public class UserService implements IEntityService<User, String> {
     }
 
     @Override
-    public User update(String email, User user) throws ResourceNotFoundException {
-        if (this.userRepository.existsById(email) && user.getEmail() != null) {
-                return this.userRepository.save(user);
-        } else {
-            throw new ResourceNotFoundException("User", "email", email);
-        }
-    }
-
-    @Override
-    public void delete(String email) throws ResourceNotFoundException {
-        User user = this.get(email);
-        this.userRepository.delete(user);
-    }
-
-    @Override
-    public User get(String email) throws ResourceNotFoundException {
-        return this.userRepository.findByEmail(email).orElseThrow(
-                () -> new ResourceNotFoundException("User", "email", email));
-    }
-
-    @Override
-    public Page<User> get(Pageable pgble) { return this.userRepository.findAll(pgble);
-    }
-
-    public void changeBlockedStatus(String email, boolean willBlock) throws ResourceNotFoundException {
-        User user = this.get(email);
-        user.setBlocked(willBlock);
-        this.userRepository.save(user);
-    }
-
-    public void forgotPassword(String email, HttpServletRequest request) throws ResourceNotFoundException {
-        if (this.userRepository.existsById(email)) {
-            this.mailService.sendPasswordResetMail(this.get(email), request);
-        }
-    }
-
-    public void changePassword(String email, String oldPassword, String newPassword) throws ResourceNotFoundException, PasswordMismatchException {
+    public void changePassword(String email, String oldPassword, String newPassword) throws PasswordMismatchException, ResourceNotFoundException {
         User user = this.get(email);
         if (passwordEncoder.matches(oldPassword, user.getPassword())) {
             user.setPassword(passwordEncoder.encode(newPassword));
@@ -86,6 +49,25 @@ public class UserService implements IEntityService<User, String> {
         } else {
             throw new PasswordMismatchException();
         }
+    }
+
+    @Override
+    public void toggleBlock(String userId, boolean willBlock) throws ResourceNotFoundException {
+        User user = this.get(userId);
+        user.setBlocked(willBlock);
+        this.userRepository.save(user);
+    }
+
+    @Override
+    public void sendCode(String userId) throws ResourceNotFoundException {
+        User user = this.get(userId);
+        this.mailService.sendAuthCodeMail(user);
+    }
+
+    @Override
+    public void checkCode(String userId, long code) throws ResourceNotFoundException {
+        User user = this.get(userId);
+        this.mailService.sendAuthCodeMail(user);
     }
 
     public void resetPassword(
@@ -98,22 +80,16 @@ public class UserService implements IEntityService<User, String> {
             user.setPassword(passwordEncoder.encode(newPassword));
             this.userRepository.save(user);
         }
-
     }
 
-    public void getCode(String email) {
-        try {
-            User user = this.get(email);
-            this.mailService.sendAuthCodeMail(user);
-        } catch(ResourceNotFoundException ex) {}
+    private User get(String email) throws ResourceNotFoundException {
+        return this.userRepository.findByEmail(email).orElseThrow(
+                () -> new ResourceNotFoundException("User", "email", email));
     }
 
-    public boolean checkCode(String email, String code) {
-        try {
-            User user = this.get(email);
-            return this.codeService.check(user, code);
-        } catch (ResourceNotFoundException ex) {
-            return false;
+    public void forgotPassword(String email, HttpServletRequest request) throws ResourceNotFoundException {
+        if (this.userRepository.existsById(email)) {
+            this.mailService.sendPasswordResetMail(this.get(email), request);
         }
     }
 

@@ -11,21 +11,81 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
+import java.io.IOException;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class Stepdefs {
 
     private ApiResponse lastApiResponse;
     private ApiException lastApiException;
     private boolean lastApiCallThrewException;
+    private int lastStatusCode;
+    private Object body;
 
     private String token;
     private String email;
+    private String password;
+    private String newPassword;
 
-    private UserApi usersApi;
+
+    private UserApi usersApi = new UsersApi();
+    private AuthApi authApi = new AuthApi();
+
     private UserDTO user;
+    private Credentials credentials;
+
+    // Initialisation du serveur
+    @Given("^J'ai un serveur$")
+    public void jAiUnServeur() throws IOException {
+        Properties properties = new Properties();
+        properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
+        String url = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
+        authApi.getApiClient().setBasePath(url);
+    }
+
+    @Then("^Je reçois une réponse de code (\\d+)$")
+    public void jeReçoisUneRéponseDeCode(int arg0) {
+        assertEquals(arg0, lastStatusCode);
+    }
+
+    @Given("^J'ai l'adresse email \"([^\"]*)\" et le mot de passe \"([^\"]*)\"$")
+    public void jAiLAdresseEmailEtLeMotDePasse(String email, String password) throws Throwable {
+        credentials = new Credentials();
+        credentials.setEmail(email);
+        credentials.setPassword(password);
+    }
+
+    @When("^Je fais un POST vers le chemin /auth/login$")
+    public void jeFaisUnPOSTVersLeCheminAuthLogin() {
+        try {
+            lastApiResponse = authApi.loginWithHttpInfo(credentials);
+            lastApiCallThrewException = false;
+            lastApiException = null;
+            body = lastApiResponse.getData();
+            System.out.println("Code de status: " + lastApiResponse.getStatusCode());
+            lastStatusCode = lastApiResponse.getStatusCode();
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiResponse = null;
+            lastApiException = e;
+            lastStatusCode = lastApiException.getCode();
+        }
+    }
+
+    @And("^Je reçois un token$")
+    public void jeReçoisUnToken() {
+        assertNotNull(body);
+        assertTrue(body instanceof String);
+    }
+
+    @And("^Je reçois une le message \"([^\"]*)\"$")
+    public void jeReçoisUneLeMessage(String message) throws Throwable {
+        assertEquals(message, body);
+    }
 
     @When("^Je fais un POST vers le chemin \"([^\"]*)\"$")
     public void jeFaisUnPOSTVersLeChemin(String arg0) throws Throwable {
@@ -50,18 +110,6 @@ public class Stepdefs {
 
     @Given("^J'ai un utilisateur d'identifiant \"([^\"]*)\"$")
     public void jAiUnUtilisateurDIdentifiant(String arg0) throws Throwable {
-        // Write code here that turns the phrase above into concrete actions
-        throw new PendingException();
-    }
-
-    @When("^Je fais un PUT vers le chemin \"([^\"]*)\"$")
-    public void jeFaisUnPUTVersLeChemin(String arg0) throws Throwable {
-        // Write code here that turns the phrase above into concrete actions
-        throw new PendingException();
-    }
-
-    @When("^Je fais un DELETE vers le chemin \"([^\"]*)\"$")
-    public void jeFaisUnDELETEVersLeChemin(String arg0) throws Throwable {
         // Write code here that turns the phrase above into concrete actions
         throw new PendingException();
     }
@@ -127,4 +175,27 @@ public class Stepdefs {
             lastApiException = e;
         }
     }
+
+    @Given("^Je veux changer mon mot de passe \"([^\"]*)\" en \"([^\"]*)\"$")
+    public void jeVeuxChangerMonMotDePasseEn(String arg0, String arg1) throws Throwable {
+        this.password = arg0;
+        this.newPassword = arg1;
+    }
+
+    @And("^Je fais un PUT vers le chemin /users/password$")
+    public void jeFaisUnPUTVersLeCheminUsersPassword() {
+        try {
+            lastApiResponse = usersApi.blockWithHttpInfo(this.email);
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @And("^Je veux son mot de passe en \"([^\"]*)\"$")
+    public void jeVeuxSonMotDePasseEn(String arg0) throws Throwable {
+        this.newPassword = arg0;
+    }
+
 }

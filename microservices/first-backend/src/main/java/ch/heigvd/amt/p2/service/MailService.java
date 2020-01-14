@@ -68,7 +68,7 @@ public class MailService {
         ctx.setVariable("code", code);
         ctx.setVariable("user", user);
         final String htmlContent = this.templateEngine.process(
-                "auth_code", ctx);
+                "code", ctx);
 
         // -- Information sur le destinataire
         List<Recipient> to = new ArrayList<>();

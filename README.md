@@ -1,73 +1,98 @@
-# Projet Deux - AMT 2019
+## AMT 2019 - Project Two
 
-Ce projet contient le deuxième projet dans le cadre de l'AMT 2019.
+Ce projet contient le deuxième projet dans le cadre de l'AMT 2019. Nous avons les répertoires suivants:
 
+- `docker-topologies` qui contient les configurations pour la topologie docker. Pour des informations sur ce la configuration docker vous pouvez consulter le fichier [docker.md](./doc/docker.md)
 
+- `docker-images` qui contient tout le nécessaire pour la création d'image docker.
 
-## What is Open Affect API?
+- `doc` qui contient toutes les documentations
+	* [jmeter.md](./doc/jmeter.md) contient toutes les configurations qui a été faite ainsi que les résultats obtenus lors des tests de performance et de monté en charge.
+	* [docker.md](./doc/docker.md) qui contient toutes les informations sur l'architecture docker ainsi déployé.
+	* [rapport_final.md](./doc/rapport_final.md) qui est le rapport du projet
+	* [first_backend.md](./doc/first_backend.md) qui contient les informations sur le premier backend.
+	* [second_backend.md](./doc/second_backend.md) qui contient des informations sur le deuxième backend.
+	
+- `microservices` qui contient les différents services du projet. Nous avons:
 
-Software development is a human activity and the affective state of stakeholders (developers, testers, users, etc.) plays an important role. More and more, tools allow to capture and record emotions associated to software artefacts and aspects. Open Affect is a proposal to standardize this process.
+	* Le serveur `first-backend` qui expose des APIs pour la __gestion des utilisateurs__
+	* Le serveur `second-backend` qui expose des APIs pour la __gestion des enrollments à un cours par des étudiants__.
+	* Le serveur `first-backend-specs` qui teste le serveur `first-backend` par l'approche __BDD__ (Behavior Driven Development).
+	* Le serveur `second-backend-specs` qui teste le serveur `second-backend` par l'approche __BDD__ (Behavior Driven Development).
 
-With Open Affect API, servers store **measures** reported by different types of **sensors**. A **measure** captures the fact that a **trigger** has caused a **subject** to feel a certain **emotion** (e.g. *a bug report has caused John to feel angry*).
+- `jmeter` contient le fichier de configuration pour réaliser des tests de performance sur l'application. Pour plus d'informations sur cette configuration vous pouvez consulter le ficher [jmeter.md](./doc/jmeter.md)
 
-## Where do I find the API specification?
+## Où trouver les spécifications ?
+Les API qui sont fournies on été fait en utilisation la spécification OpenAPI. Nous trouvons les spécifications dans les répertoires suivants:
 
-The Open Affect API has been specified with the Swagger format. The YAML file that describes the types and endpoints for the API is located in `./microservices/oa-server/src/main/resources/api-spec.yaml`.
+- Pour les serveurs __first-backend__ et __second-backend__
 
-You can edit this file with the Swagger Editor, which you can run with Docker. Type the following command and open a web brower on `http://YOURDOCKERHOST:28080`.
+ `./microservices/nom_du_serveur/src/main/resources/specs/api-spec.yaml`
+ 
+- Pour les serveurs __first-backend-specs__ et __second-backend-specs__
+
+ `./microservices/nom_du_serveur/src/main/resources/api-spec.yaml`
+ 
+>  *Avec __nom_du_serveur__ qui est le nom du serveur choisi*
+ 
+Vous pouvez éditer ce fichier via l'éditeur Swagger, que vous pouvez lancer par Docker. Ecrivez la commande suivante et ouvrez votre navigateur à cette adresse `http://YOURDOCKERHOST:28080`.
 
 ```
 docker run -p 28080:8080 swaggerapi/swagger-editor
 ```
 
-## How do I build, validate and deploy the server?
+## Comment construire l'application?
 
-Since version 0.1.3, we provide a CI/CD pipeline for the server, directly in this repo. The pipeline is built on top of Jenkins and Docker. The following process allows you to start the CI/CD server, to build the code, to run API tests and to have a running server on your machine:
+1. Contruisez toutes les images en exécutant le script **build.sh**
 
-1. Start the CI/CD server
-  * `cd docker-topologies/cdpipeline/`
-  * `docker-compose up`
-  * wait until jenkins has fully started
-  * Open a web browser on [http://localhost:1080](http://localhost:1080) or [http://192.168.99.100:1080](http://192.168.99.100:1080) (depending on your Docker configuration and whether you use docker machine or not)
-  * Start the **build, validate and deploy open affect server** job
-  * Check the results in the jenkins UI
-2. At the end of the process, you should have a running docker topology
-  * Open a web browser on [http://localhost:8080/api](http://localhost:8080/api) or [http://192.168.99.100:8080/api](http://192.168.99.100:8080/api) (depending on your Docker configuration and whether you use docker machine or not)
+  `./build.sh`
+  
+- Il est possible de contruire une image docker d'un serveur particulier, pour cela vous procéder comme suit:
 
-## Legacy instructions (prior to version 0.1.3)
+       Par exemple pour le premier backend *__(first-backend)__*
 
-### How do I run the server?
-
-1. Build the docker image
-  * `cd docker-images/oa-java-server/`
-  * `./build-docker-image.sh` 
-2. Start the docker topology
-  * `cd ../../docker-topologies/runtime/`
-  * `docker-compose up`
-3. Check that the server is running
-  * Open a web browser on [http://localhost:8080/api](http://localhost:8080/api) or [http://192.168.99.100:8080/api](http://192.168.99.100:8080/api) (depending on your Docker configuration and whether you use docker machine or not)
+      `cd docker-images/first-backend/`
+      `./build-docker-image.sh`
 
 
-### How do I send API requests to the server?
+### Comment lancer le projet
+1. Lancer la topologie docker. La topologie se lancera avec les jars construits lors du dernier *build*.
 
-In the current version, there is a single end-point: `/measures`, which supports `POST` and `GET` methods. The first method is used to create a measure, the second one is used to retrieve the list of all measures stored on the server.
+    `./run.sh`
+    
+2. Vérifiez que le serveur en cours d'exécution
 
-An example is provided in the form of a PostMan collection, available in `examples/OpenAffectAPI.postman_collection`. The example shows how to report a measure, which captures the fact that a person has expressed an emotion about a particular issue on GitHub.
+Ouvrez un navigateur web [http://localhost:8090](http://localhost:8080/)
 
 
-### Is there an executable specification for the server?
+### Comment exécuter une spécification
 
-Yes, since release 0.1.1. We use [Cucumber-JVM](https://cucumber.io/docs/reference/jvm) to specify the expected behaviour of the REST API implementation. We have a separate maven project for that, in the `./microservices/oa-server-specs` directory. The build process of that project also uses the Swagger API specification to generate client stubs. The features are described in Gherkin feature files in the `./microservices/oa-server-specs/src/test/resources/scenarios` directory.
+1. Pour cela lancer la topologie docker comme expliqué précédemment
+2. Ensuite vous lancer le script **test.sh**
 
-### How do I run the executable specification?
+Vous pouvez cependant tester individuellement chacun des serveur. Pour cela procéder comme suit:
 
-1. Start the docker topology, as explained before.
-2. Build the docker image that encapsulates the executable specification
-  * `cd docker-images/oa-server-specs`
-  * `./build-docker-image.sh`
-3. Run this image and check the output on the console
-  * `./run-docker-image.sh`
+1. Construisez l'image docker qui encapsule vous spécifications de test
 
-## Licences
+    Pour le premier backend:
 
-The icon for the GitHub organization is 'masks' by Creative Stall from the Noun Project
+     `cd docker-images/first-backend-specs`
+     `./build-docker-image.sh`
+  
+    Pour le second backend:
+
+     `cd docker-images/second-backend-specs`
+     `./build-docker-image.sh`
+    
+2. Exécutez l'image construite et vérifiez la console
+  
+  `./run-docker-image.sh`
+  
+### Comment lancer des tests de performance 
+Vous aurez besoin d'installer jmeter. Pour la mise en place de jmeter veuillez consulter le fichier [jmeter.md](./doc/jmeter.md)
+
+- Lancer Jmeter.
+- Charger le fichier .jmx qui se trouve dans le répertoire `jmeter`
+- Cliquez sur le bouton "Start" pour lancer le test
+- Observez et interprétez
+

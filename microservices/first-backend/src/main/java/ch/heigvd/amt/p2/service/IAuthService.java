@@ -11,6 +11,4 @@ public interface IAuthService {
 
     public String login(String email, String password) throws ResourceNotFoundException, WrongCredentialsException;
 
-    public void logout(HttpServletRequest request, HttpServletResponse response, User user);
-
 }

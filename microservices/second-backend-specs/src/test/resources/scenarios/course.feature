@@ -27,7 +27,7 @@ Feature: Fonctionnalités CRUD sur l'entité "Département"
     And J'ai un cours à mettre à jour
     When Je fais un PUT vers le chemin /courses/1 avec des données
     Then Je reçois une réponse de code 200
-    And Le cours est mis à jour
+    When Je fais un GET vers le chemin /courses/1
 
   Scenario: Suppression du cours
     Given J'ai l'identifiant 1 d'une ressource
