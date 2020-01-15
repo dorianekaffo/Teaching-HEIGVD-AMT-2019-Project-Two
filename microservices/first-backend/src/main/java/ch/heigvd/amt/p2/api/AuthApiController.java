@@ -1,6 +1,7 @@
 package ch.heigvd.amt.p2.api;
 
 import ch.heigvd.amt.p2.api.dto.Credentials;
+import ch.heigvd.amt.p2.exception.ForbiddenAccessException;
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
 import ch.heigvd.amt.p2.exception.WrongCredentialsException;
 import ch.heigvd.amt.p2.model.User;
@@ -60,21 +61,10 @@ public class AuthApiController implements AuthApi {
                     credentials.getEmail(), credentials.getPassword());
         } catch (ResourceNotFoundException | WrongCredentialsException e) {
             return new ResponseEntity<>("Email ou mot de passe incorrecte", HttpStatus.UNAUTHORIZED);
-        };
-        return new ResponseEntity<>(token, HttpStatus.OK);
-    }
-
-    @Override
-    public ResponseEntity<String> logout() {
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        try {
-            User user = this.userService.get(userDetails.getEmail());
-        } catch (ResourceNotFoundException e) {
-            return new ResponseEntity<>("Erreur d'authentification", HttpStatus.UNAUTHORIZED);
+        } catch (ForbiddenAccessException ex) {
+            return new ResponseEntity<>("Accès refusé", HttpStatus.FORBIDDEN);
         }
-        return new ResponseEntity<>("Déconnexion réussie", HttpStatus.OK);
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
 }

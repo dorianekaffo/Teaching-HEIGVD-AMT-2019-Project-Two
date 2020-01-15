@@ -11,7 +11,5 @@ import java.util.Optional;
 @Repository
 public interface IUserRepository extends JpaRepository<User, String>{
     Optional<User> findByEmail(String email);
-    Page<User> findByOwner(String email, Pageable pgble);
-    boolean existsByEmailAndOwner(String userId, String ownerId);
     boolean existsByEmailAndRole(String userId, Role role);
 }

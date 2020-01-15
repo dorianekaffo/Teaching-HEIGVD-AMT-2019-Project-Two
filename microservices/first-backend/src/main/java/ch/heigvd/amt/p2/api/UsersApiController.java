@@ -2,9 +2,8 @@ package ch.heigvd.amt.p2.api;
 
 import ch.heigvd.amt.p2.api.dto.ChangePassword;
 import ch.heigvd.amt.p2.api.dto.CodeCheck;
-import ch.heigvd.amt.p2.api.dto.PagedResponse;
 import ch.heigvd.amt.p2.api.dto.ResetPassword;
-import ch.heigvd.amt.p2.api.dto.UserDTO;
+import ch.heigvd.amt.p2.api.dto.UserDto;
 import ch.heigvd.amt.p2.api.dto.UserId;
 import ch.heigvd.amt.p2.exception.PasswordMismatchException;
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
@@ -28,6 +27,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.thymeleaf.ITemplateEngine;
+import org.thymeleaf.context.Context;
 
 import javax.validation.constraints.*;
 import javax.validation.Valid;
@@ -51,6 +52,9 @@ public class UsersApiController implements UsersApi {
     private TokenService tokenService;
 
     @Autowired
+    private ITemplateEngine templateEngine;
+
+    @Autowired
     public UsersApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
@@ -61,7 +65,7 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<String> block(@ApiParam(value = "",required=true) @PathVariable("email") String email) {
         String accept = request.getHeader("Accept");
         try {
-            this.userService.changeBlockedStatus(email, true);
+            this.userService.toggleBlock(email, true);
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
         }
@@ -90,34 +94,23 @@ public class UsersApiController implements UsersApi {
 
     @Override
     public ResponseEntity<String> checkCode(@ApiParam(value = "" ,required=true )  @Valid @RequestBody CodeCheck codeCheck) {
-        if (this.userService.checkCode(codeCheck.getEmail(), codeCheck.getCode()))
-            return new ResponseEntity<>("La vérification a réussie", HttpStatus.OK);
+        try {
+            if (this.userService.checkCode(codeCheck.getEmail(), codeCheck.getCode()))
+                return new ResponseEntity<>("La vérification a réussie", HttpStatus.OK);
+        } catch (ResourceNotFoundException ex) {
+            return new ResponseEntity<>("La vérification a échoué", HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>("La vérification a échoué", HttpStatus.BAD_REQUEST);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @Override
-    public ResponseEntity<UserDTO> create(@ApiParam(value = "Utilisateur à créer" ,required=true )  @Valid @RequestBody UserDTO body) {
+    public ResponseEntity<UserDto> create(@ApiParam(value = "Utilisateur à créer" ,required=true )  @Valid @RequestBody UserDto body) {
 
         User user = this.userService.convertToEntity(body);
         user = this.userService.create(user);
-        return new ResponseEntity<>(this.userService.convertToDto(user), HttpStatus.OK);
+        return new ResponseEntity<>(this.userService.convertToDto(user), HttpStatus.CREATED);
 
-    }
-
-    @Override
-    public ResponseEntity<String> delete(@ApiParam(value = "Email de l'utilisateur à supprimer",required=true) @PathVariable("email") String email) {
-
-        CustomUserDetails userDetails = (CustomUserDetails)SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        try {
-            this.userService.delete(email);
-        } catch (ResourceNotFoundException ex) {
-            return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-        }
-
-        return new ResponseEntity<>("Utilisateur (id=" + email + ") supprimé", HttpStatus.OK);
     }
 
     @Override
@@ -134,43 +127,6 @@ public class UsersApiController implements UsersApi {
     }
 
     @Override
-    public ResponseEntity<UserDTO> get(@ApiParam(value = "Email de l'utilisateur à récupérer",required=true) @PathVariable("email") String email) {
-
-        CustomUserDetails userDetails = (CustomUserDetails)SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        User user = null;
-        try {
-            user = this.userService.get(email);
-        } catch (ResourceNotFoundException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(this.userService.convertToDto(user), HttpStatus.OK);
-    }
-
-    @Override
-    public ResponseEntity<PagedResponse> getAll(@ApiParam(value = "", defaultValue = "1") @Valid @RequestParam(value = "page", required = false, defaultValue="1") Integer page,@ApiParam(value = "", defaultValue = "10") @Valid @RequestParam(value = "pageSize", required = false, defaultValue="10") Integer pageSize) {
-
-        CustomUserDetails userDetails = (CustomUserDetails)SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-//        if (this.userService.isAdmin(userDetails.getEmail())) {
-            Page users = this.userService.get(PageRequest.of(page, pageSize));
-
-            // Initialisation de page
-            PagedResponse response = new PagedResponse();
-            response.setContent(users.getContent());
-            response.setPageNumber(users.getNumber());
-            response.setPageSize(users.getSize());
-            response.setTotalPages(users.getTotalPages());
-            response.setTotalElements(users.getNumberOfElements());
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-
-            // }
-    }
-
-    @Override
     public ResponseEntity<String> resetPassword(@ApiParam(value = "" ,required=true )  @Valid @RequestBody ResetPassword resetPassword) {
         try {
             this.userService.resetPassword(resetPassword.getToken(), resetPassword.getNewPassword());
@@ -184,7 +140,10 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<String> resetPasswordPage(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "token", required = true) String token) {
         String uid = this.tokenService.getUidFromJWT(token);
         if (this.tokenService.validateToken(token)) {
-            return new ResponseEntity<>("Page de connexion", HttpStatus.OK);
+            Context context = new Context();
+            context.setVariable("token", token);
+            String pageConnexion = this.templateEngine.process("reset_password", context);
+            return new ResponseEntity<>(pageConnexion, HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Le token n'est plus valide", HttpStatus.UNAUTHORIZED);
         }
@@ -193,7 +152,11 @@ public class UsersApiController implements UsersApi {
 
     @Override
     public ResponseEntity<String> sendCode(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "email", required = true) String email) {
-        this.userService.getCode(email);
+        try {
+            this.userService.sendCode(email);
+        } catch (ResourceNotFoundException ex) {
+            return new ResponseEntity<>("Aucun utilisateur ayant cette adresse mail", HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>("Un code a été envoyé à l'adresse email fournit", HttpStatus.OK);
     }
 
@@ -202,34 +165,12 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<String> unblock(@ApiParam(value = "",required=true) @PathVariable("email") String email) {
 
         try {
-            this.userService.changeBlockedStatus(email, false);
+            this.userService.toggleBlock(email, false);
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>("Utilisateur (id=" + email + ") débloqué", HttpStatus.OK);
 
-    }
-
-    @Override
-    public ResponseEntity<UserDTO> update(@ApiParam(value = "email de l'utilisateur à mettre à jour",required=true) @PathVariable("email") String email,@ApiParam(value = "Utilisateur à mettre à jour" ,required=true )  @Valid @RequestBody UserDTO body) {
-
-        CustomUserDetails userDetails = (CustomUserDetails)SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        User user = this.userService.convertToEntity(body);
-
-        try {
-            if (userDetails.getEmail().equals(email)) {
-                user = this.userService.update(email, user);
-            } else {
-                throw new ForbiddenAccessException("User", email);
-            }
-        } catch (ForbiddenAccessException ex) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        } catch (ResourceNotFoundException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(this.userService.convertToDto(user), HttpStatus.OK);
     }
 
 }

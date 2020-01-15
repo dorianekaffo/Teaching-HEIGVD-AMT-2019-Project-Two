@@ -2,9 +2,11 @@ package ch.heigvd.amt.p2.steps;
 
 import ch.heigvd.amt.p2.ApiException;
 import ch.heigvd.amt.p2.ApiResponse;
+import ch.heigvd.amt.p2.api.AuthApi;
 import ch.heigvd.amt.p2.api.UserApi;
-import ch.heigvd.amt.p2.dto.PagedResponse;
-import ch.heigvd.amt.p2.dto.UserDTO;
+import ch.heigvd.amt.p2.dto.ChangePassword;
+import ch.heigvd.amt.p2.dto.Credentials;
+import ch.heigvd.amt.p2.dto.UserDto;
 import cucumber.api.PendingException;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
@@ -32,10 +34,10 @@ public class Stepdefs {
     private String newPassword;
 
 
-    private UserApi usersApi = new UsersApi();
+    private UserApi usersApi = new UserApi();
     private AuthApi authApi = new AuthApi();
 
-    private UserDTO user;
+    private UserDto user;
     private Credentials credentials;
 
     // Initialisation du serveur
@@ -67,11 +69,13 @@ public class Stepdefs {
             lastApiException = null;
             body = lastApiResponse.getData();
             System.out.println("Code de status: " + lastApiResponse.getStatusCode());
+            System.out.println("Code de status: " + lastApiResponse.getStatusCode());
             lastStatusCode = lastApiResponse.getStatusCode();
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiResponse = null;
             lastApiException = e;
+            System.out.println("Exception: " + lastApiResponse);
             lastStatusCode = lastApiException.getCode();
         }
     }
@@ -87,36 +91,15 @@ public class Stepdefs {
         assertEquals(message, body);
     }
 
-    @When("^Je fais un POST vers le chemin \"([^\"]*)\"$")
-    public void jeFaisUnPOSTVersLeChemin(String arg0) throws Throwable {
-        // Write code here that turns the phrase above into concrete actions
-        throw new PendingException();
-    }
-
-    @Given("^Je suis connecté comme admin$")
-    public void jeSuisConnectéCommeAdmin() {
-    }
-
-    @Given("^Je veux créer un utilisateur d'identifiant \"([^\"]*)\" et mot de passe \"([^\"]*)\"$")
-    public void jeVeuxCréerUnUtilisateurDIdentifiantEtMotDePasse(String arg0, String arg1) throws Throwable {
-        // Write code here that turns the phrase above into concrete actions
-        throw new PendingException();
-    }
-
-//    @Then("^Je reçois une réponse de code (\\d+)$")
-//    public void jeReçoisUneRéponseDeCode(int arg0) {
-//
-//    }
-
     @Given("^J'ai un utilisateur d'identifiant \"([^\"]*)\"$")
     public void jAiUnUtilisateurDIdentifiant(String arg0) throws Throwable {
-        // Write code here that turns the phrase above into concrete actions
-        throw new PendingException();
+        this.email = arg0;
     }
 
     @When("^Je fais un POST vers le chemin /users$")
     public void jeFaisUnPOSTVersLeCheminUsers() {
         try {
+            usersApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = usersApi.createWithHttpInfo(user);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
@@ -127,36 +110,17 @@ public class Stepdefs {
 
     @Given("^Je veux créer un utilisateur d'identifiant \"([^\"]*)\", de mot de passe \"([^\"]*)\", de prénom \"([^\"]*)\" et de nom \"([^\"]*)\"$")
     public void jeVeuxCréerUnUtilisateurDIdentifiantDeMotDePasseDePrénomEtDeNom(String email, String password, String firstname, String lastname) throws Throwable {
-        user = new UserDTO();
+        user = new UserDto();
         user.setEmail(email);
         user.setPassword(password);
         user.setFirstName(firstname);
         user.setLastName(lastname);
     }
 
-    @Then("^L'utilisateur est présent$")
-    public void lUtilisateurEstPrésent() {
-        assertTrue(lastApiResponse.getData() instanceof PagedResponse);
-        PagedResponse response = (PagedResponse) lastApiResponse.getData();
-        assertTrue(response.getContent().stream()
-                .filter((element) -> ((UserDTO)element).getEmail().equals(user.getEmail())
-                ).collect(Collectors.toList()).size() == 1);
-    }
-
-    @And("^Je fais un GET vers le chemin /users\\?page=(\\d+)&size=(\\d+)$")
-    public void jeFaisUnGETVersLeCheminUsersPageSize(int pageNumber, int pageSize) {
-        try {
-            lastApiResponse = usersApi.getAllWithHttpInfo(pageNumber, pageSize);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
     @When("^Je fais un PUT vers le chemin /users/block/ avec email$")
     public void jeFaisUnPUTVersLeCheminUsersBlockEmail() {
         try {
+            usersApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = usersApi.blockWithHttpInfo(this.email);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
@@ -168,6 +132,7 @@ public class Stepdefs {
     @When("^Je fais un DELETE vers le chemin /users/block/ avec email$")
     public void jeFaisUnDELETEVersLeCheminUsersBlockEmail() {
         try {
+            usersApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = usersApi.unblockWithHttpInfo(this.email);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
@@ -185,7 +150,11 @@ public class Stepdefs {
     @And("^Je fais un PUT vers le chemin /users/password$")
     public void jeFaisUnPUTVersLeCheminUsersPassword() {
         try {
-            lastApiResponse = usersApi.blockWithHttpInfo(this.email);
+            usersApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
+            ChangePassword changePassword = new ChangePassword();
+            changePassword.setNewPassword(this.newPassword);
+            changePassword.setOldPassword(this.password);
+            lastApiResponse = usersApi.changePasswordWithHttpInfo(changePassword);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
             lastApiCallThrewException = true;

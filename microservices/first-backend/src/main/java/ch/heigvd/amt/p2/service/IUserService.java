@@ -15,6 +15,6 @@ public interface IUserService<T, U> {
 
     public void sendCode(T userId) throws ResourceNotFoundException;
 
-    public void checkCode(T userId, long code) throws ResourceNotFoundException;
+    public boolean checkCode(T userId, String code) throws ResourceNotFoundException;
 
 }

@@ -1,6 +1,6 @@
 package ch.heigvd.amt.p2.service;
 
-import ch.heigvd.amt.p2.api.dto.UserDTO;
+import ch.heigvd.amt.p2.api.dto.UserDto;
 import ch.heigvd.amt.p2.enums.Role;
 import ch.heigvd.amt.p2.exception.PasswordMismatchException;
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
@@ -65,9 +65,9 @@ public class UserService implements IUserService<String, User> {
     }
 
     @Override
-    public void checkCode(String userId, long code) throws ResourceNotFoundException {
+    public boolean checkCode(String userId, String code) throws ResourceNotFoundException {
         User user = this.get(userId);
-        this.mailService.sendAuthCodeMail(user);
+        return this.codeService.check(user, code);
     }
 
     public void resetPassword(
@@ -82,7 +82,7 @@ public class UserService implements IUserService<String, User> {
         }
     }
 
-    private User get(String email) throws ResourceNotFoundException {
+    public User get(String email) throws ResourceNotFoundException {
         return this.userRepository.findByEmail(email).orElseThrow(
                 () -> new ResourceNotFoundException("User", "email", email));
     }
@@ -97,8 +97,8 @@ public class UserService implements IUserService<String, User> {
         return this.userRepository.existsByEmailAndRole(ownerId, Role.ADMIN);
     }
 
-    public UserDTO convertToDto(User user) {
-        UserDTO userDto = new UserDTO();
+    public UserDto convertToDto(User user) {
+        UserDto userDto = new UserDto();
         userDto.setEmail(user.getEmail());
         userDto.setFirstName(user.getFirstname());
         userDto.setLastName(user.getLastname());
@@ -108,7 +108,7 @@ public class UserService implements IUserService<String, User> {
         return userDto;
     }
 
-    public User convertToEntity(UserDTO userDto) {
+    public User convertToEntity(UserDto userDto) {
         User user = new User();
         user.setEmail(userDto.getEmail());
         user.setFirstname(userDto.getFirstName());

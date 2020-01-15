@@ -1,5 +1,6 @@
 package ch.heigvd.amt.p2.service;
 
+import ch.heigvd.amt.p2.exception.ForbiddenAccessException;
 import ch.heigvd.amt.p2.exception.ResourceNotFoundException;
 import ch.heigvd.amt.p2.exception.WrongCredentialsException;
 import ch.heigvd.amt.p2.model.User;
@@ -28,13 +29,17 @@ public class AuthService implements IAuthService {
     private TokenService tokenService;
 
     @Override
-    public String login(String email, String password) throws ResourceNotFoundException, WrongCredentialsException {
+    public String login(String email, String password) throws ResourceNotFoundException, WrongCredentialsException, ForbiddenAccessException {
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
         User user= this.userService.get(email);
 
         if (passwordEncoder.matches(password, user.getPassword())) {
+
+            if (user.getBlocked()) {
+                throw new ForbiddenAccessException("User", user);
+            }
 
             CustomUserDetails userDetails = new CustomUserDetails(user);
             UsernamePasswordAuthenticationToken authentication
@@ -50,17 +55,6 @@ public class AuthService implements IAuthService {
         }
 
         throw new WrongCredentialsException();
-    }
-
-    @Override
-    public void logout(HttpServletRequest request, HttpServletResponse response, User user) {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth != null) {
-            new SecurityContextLogoutHandler().logout(
-                    request, response, auth);
-        }
     }
 
 }
