@@ -49,18 +49,20 @@ public class StudentsApiController implements StudentsApi {
         Student student = this.studentService.convertToEntity(body);
         student.setOwner(AuthHelper.getUsername());
         student = this.studentService.create(student);
-        return new ResponseEntity<>(this.studentService.convertToDto(student), HttpStatus.OK);
+        return new ResponseEntity<>(this.studentService.convertToDto(student), HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<Void> deleteStudent(@ApiParam(value = "identifiant de l'étudiant à supprimer",required=true) @PathVariable("id") Integer id) {
         try {
 
-            if (AuthHelper.isAdmin() || this.studentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
-                this.studentService.delete(id.longValue());
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            if (!AuthHelper.isAdmin() && !this.studentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+                throw new ForbiddenAccessException();
             }
-            throw new ForbiddenAccessException();
+
+            this.studentService.delete(id.longValue());
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ForbiddenAccessException ex) {
@@ -72,11 +74,13 @@ public class StudentsApiController implements StudentsApi {
     public ResponseEntity<StudentDto> getStudent(@ApiParam(value = "Identifiant de l'étudiant",required=true) @PathVariable("id") Integer id) {
         try {
 
-            if (AuthHelper.isAdmin() || this.studentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
-                Student student = this.studentService.get(id.longValue());
-                return new ResponseEntity(this.studentService.convertToDto(student), HttpStatus.OK);
+            if (!AuthHelper.isAdmin() && !this.studentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+                throw new ForbiddenAccessException();
             }
-            throw new ForbiddenAccessException();
+
+            Student student = this.studentService.get(id.longValue());
+            return new ResponseEntity(this.studentService.convertToDto(student), HttpStatus.OK);
+
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ForbiddenAccessException ex) {
@@ -109,13 +113,15 @@ public class StudentsApiController implements StudentsApi {
     public ResponseEntity<StudentDto> updateStudent(@ApiParam(value = "Identifiant de l'étudiant à mettre à jour",required=true) @PathVariable("id") Integer id,@ApiParam(value = "Etudiant à mettre à jour" ,required=true )  @Valid @RequestBody StudentDto body) {
         try {
 
-            if (AuthHelper.isAdmin() || this.studentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+            if (!AuthHelper.isAdmin() && !this.studentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+                throw new ForbiddenAccessException();
+            }
+
                 Student student = this.studentService.convertToEntity(body);
                 student.setOwner(AuthHelper.getUsername());
                 student = this.studentService.update(id.longValue(), student);
                 return new ResponseEntity(this.studentService.convertToDto(student), HttpStatus.OK);
-            }
-            throw new ForbiddenAccessException();
+
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ForbiddenAccessException ex) {

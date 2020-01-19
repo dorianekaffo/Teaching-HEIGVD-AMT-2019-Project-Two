@@ -1,0 +1,277 @@
+swagger: "2.0"
+info:
+  description: "Ce serveur a été construit dans le cadre du deuxième projet de l'AMT 2019. Ceci regroupe les APIs du premier backend du projet."
+  version: "1.0.0"
+  title: "AMT 2019 - Project Two API - Premier backend"
+  termsOfService: ""
+host: "localhost:8090"
+basePath: "/"
+tags:
+  - name: "user"
+    description: "Les opérations sur les utilisateurs"
+  - name: "auth"
+    description: "Les opérations pour l'authentification des utilisateur"
+schemes:
+  - "http"
+paths:
+  /users:
+    post:
+      tags:
+        - "user"
+      summary: "Créer un utilisateur"
+      description: "Crée un nouvel utilisateur"
+      operationId: "create"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Utilisateur à créer"
+          required: true
+          schema:
+            $ref: "#/definitions/UserDto"
+      responses:
+        201:
+          description: "Opération réussie"
+          schema:
+            $ref: "#/definitions/UserDto"
+        403:
+          description: "Accès refusé"
+          schema:
+            type: "string"
+  /users/block/{email}:
+    put:
+      tags:
+        - "user"
+      summary: "Bloquer un utilisateur"
+      description: "Bloque l'utilisateur ayant l'`email` correspondant"
+      operationId: "block"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "email"
+          type: "string"
+          required: true
+      responses:
+        200:
+          description: "Utilisateur bloqué"
+          schema:
+            type: "string"
+        404:
+          description: "Utilisateur introuvable"
+          schema:
+            type: "string"
+    delete:
+      tags:
+        - "user"
+      summary: "Débloquer un utilisateur"
+      description: "Débloque l'utilisateur ayant l'email correspondant"
+      operationId: "unblock"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "email"
+          type: "string"
+          required: true
+      responses:
+        200:
+          description: "Utilisateur débloqué"
+          schema:
+            type: "string"
+
+  /users/password:
+    get:
+      tags:
+        - "user"
+      summary: "Ouvrir la page pour le reinitialiser son mot de passe"
+      description: "Ouvre la page de réinitialisation du mot de passe"
+      operationId: "resetPasswordPage"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "query"
+          name: "token"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Page pour la réinitialisation du mot de passe"
+          schema:
+            type: "string"
+    put:
+      tags:
+        - "user"
+      summary: "Change le mot de passe de l'utilisateur"
+      description: "Change le mot de passe de l'utilisateur"
+      operationId: "changePassword"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "changePassword"
+          required: true
+          schema:
+            $ref: "#/definitions/ChangePassword"
+      responses:
+        200:
+          description: "Opération réussie"
+          schema:
+            type: "string"
+        400:
+          description: "Données envoyés invalides"
+          schema:
+            type: "string"
+    post:
+      tags:
+        - "user"
+      summary: "Attribut un nouveau mot de passe à l'utilisateur"
+      description: "Attribut un nouveau mot de passe suite à une réinitialisation"
+      operationId: "resetPassword"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "resetPassword"
+          required: true
+          schema:
+            $ref: "#/definitions/ResetPassword"
+      responses:
+        200:
+          description: "Mot de passe changé"
+          schema:
+            type: "string"
+  /users/resetPassword:
+    post:
+      tags:
+        - "user"
+      summary: "Faire une requête pour réinitialiser son mot de passe"
+      description: "Envoi le mail de réinitialisation"
+      operationId: "forgotPassword"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "userId"
+          required: true
+          schema:
+            $ref: "#/definitions/UserId"
+      responses:
+        200:
+          description: "Mail de réinitialisation envoyé"
+          schema:
+            type: "string"
+  /users/code:
+    get:
+      tags:
+        - "user"
+      summary: "Envoyer un code par mail"
+      description: "Envoi un code à l'adresse mail correspondant"
+      operationId: "sendCode"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "query"
+          name: "email"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Code envoyé à l'email"
+          schema:
+            type: "string"
+    post:
+      tags:
+        - "user"
+      summary: "Vérification du code"
+      description: "Vérifie le code qui a été envoyé par mail"
+      operationId: "checkCode"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "codeCheck"
+          required: true
+          schema:
+            $ref: "#/definitions/CodeCheck"
+      responses:
+        200:
+          description: "Feedback sur la vérification du code"
+          schema:
+            type: "string"
+  /auth/login:
+    post:
+      tags:
+        - "auth"
+      summary: "Se connecter à la plateforme"
+      description: "Se connecte à la plateforme en fournissant les identifiants reçevant un token"
+      operationId: "login"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "credentials"
+          in: "body"
+          description: "Les identifiants de l'utilisateur"
+          required: true
+          schema:
+            $ref: "#/definitions/Credentials"
+      responses:
+        200:
+          description: "token"
+          schema:
+            type: "string"
+        400:
+          description: "email ou mot de passe invalide"
+          schema:
+            type: "string"
+definitions:
+  UserDto:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      password:
+        type: "string"
+      role:
+        type: "string"
+      blocked:
+        type: "boolean"
+        default: false
+  Credentials:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+      password:
+        type: "string"
+  CodeCheck:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+      code:
+        type: "string"
+  UserId:
+    type: "object"
+    properties:
+      userId:
+        type: "string"
+  ResetPassword:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+      newPassword:
+        type: "string"
+  ChangePassword:
+    type: "object"
+    properties:
+      newPassword:
+        type: "string"
+      oldPassword:
+        type: "string"

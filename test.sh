@@ -1,6 +1,8 @@
 #!/bin/bash
-./run.sh
-cd ./docker-images/first-backend-specs/
+cd ./docker-topologies/runtime
+docker-compose up -d --remove-orphans --force-recreate
+sleep 30
+cd ../../docker-images/first-backend-specs/
 ./run-docker-image.sh
 cd ../second-backend-specs/
 ./run-docker-image.sh

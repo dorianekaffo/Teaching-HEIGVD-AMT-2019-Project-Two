@@ -1,4 +1,3 @@
 #!/bin/bash
 cd ./docker-topologies/runtime
-docker-compose up
-sleep 30
+docker-compose up --remove-orphans --force-recreate

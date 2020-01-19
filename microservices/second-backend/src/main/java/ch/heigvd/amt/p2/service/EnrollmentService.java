@@ -68,7 +68,8 @@ public class EnrollmentService implements IEntityService<Enrollment, Long> {
         return this.enrollmentRepository.findByOwner(owner, pgble);
     }
 
-    public boolean isOwner(Long id, String owner) {
+    public boolean isOwner(Long id, String owner) throws ResourceNotFoundException {
+        if (!this.enrollmentRepository.existsById(id)) throw new ResourceNotFoundException();
         return this.enrollmentRepository.existsByIdAndOwner(id, owner);
     }
 

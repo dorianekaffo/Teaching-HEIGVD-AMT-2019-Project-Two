@@ -1,11 +1,14 @@
 Feature: Test des fonctionnalités exclusives à l'administrateur
 
+  Background:
+    Given J'ai un serveur
+
   Scenario: Création de l'utilisateur
     Given J'ai l'adresse email "doriane.tedongmokaffo@heig-vd.ch" et le mot de passe "administrator"
     And Je fais un POST vers le chemin /auth/login
     And Je reçois une réponse de code 200
     And Je reçois un token
-    Given Je veux créer un utilisateur d'identifiant "renedescartes@heig-vd.ch", de mot de passe "renedescartes", de prénom "René" et de nom "Descartes"
+    Given Je veux créer un utilisateur d'identifiant "renedescartes@heig-vd.ch", de mot de passe "renedescartes", de prénom "René", de nom "Descartes" et de role "NORMAL"
     When Je fais un POST vers le chemin /users
     And Je reçois une réponse de code 201
     And J'ai l'adresse email "renedescartes@heig-vd.ch" et le mot de passe "renedescartes"
@@ -44,7 +47,7 @@ Feature: Test des fonctionnalités exclusives à l'administrateur
     And Je fais un POST vers le chemin /auth/login
     And Je reçois une réponse de code 200
     And Je reçois un token
-    Given Je veux créer un utilisateur d'identifiant "henripoincare@heig-vd.ch", de mot de passe "henripoincare", de prénom "Henri" et de nom "Poincaré"
+    Given Je veux créer un utilisateur d'identifiant "henripoincare@heig-vd.ch", de mot de passe "henripoincare", de prénom "Henri", de nom "Poincaré" et de role "NORMAL"
     When Je fais un POST vers le chemin /users
     And Je reçois une réponse de code 403
 

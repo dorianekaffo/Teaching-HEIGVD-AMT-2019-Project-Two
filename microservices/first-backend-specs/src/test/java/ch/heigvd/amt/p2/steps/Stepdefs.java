@@ -33,7 +33,6 @@ public class Stepdefs {
     private String password;
     private String newPassword;
 
-
     private UserApi usersApi = new UserApi();
     private AuthApi authApi = new AuthApi();
 
@@ -47,6 +46,7 @@ public class Stepdefs {
         properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
         String url = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
         authApi.getApiClient().setBasePath(url);
+        usersApi.getApiClient().setBasePath(url);
     }
 
     @Then("^Je reçois une réponse de code (\\d+)$")
@@ -68,15 +68,13 @@ public class Stepdefs {
             lastApiCallThrewException = false;
             lastApiException = null;
             body = lastApiResponse.getData();
-            System.out.println("Code de status: " + lastApiResponse.getStatusCode());
-            System.out.println("Code de status: " + lastApiResponse.getStatusCode());
             lastStatusCode = lastApiResponse.getStatusCode();
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiResponse = null;
             lastApiException = e;
-            System.out.println("Exception: " + lastApiResponse);
-            lastStatusCode = lastApiException.getCode();
+            body = e.getResponseBody();
+            lastStatusCode = e.getCode();
         }
     }
 
@@ -84,6 +82,7 @@ public class Stepdefs {
     public void jeReçoisUnToken() {
         assertNotNull(body);
         assertTrue(body instanceof String);
+        this.token = (String)body;
     }
 
     @And("^Je reçois une le message \"([^\"]*)\"$")
@@ -102,19 +101,24 @@ public class Stepdefs {
             usersApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = usersApi.createWithHttpInfo(user);
             lastApiCallThrewException = false;
+            body = lastApiResponse.getData();
+            lastStatusCode = lastApiResponse.getStatusCode();
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiException = e;
+            body = e.getResponseBody();
+            lastStatusCode = e.getCode();
         }
     }
 
-    @Given("^Je veux créer un utilisateur d'identifiant \"([^\"]*)\", de mot de passe \"([^\"]*)\", de prénom \"([^\"]*)\" et de nom \"([^\"]*)\"$")
-    public void jeVeuxCréerUnUtilisateurDIdentifiantDeMotDePasseDePrénomEtDeNom(String email, String password, String firstname, String lastname) throws Throwable {
+    @Given("^Je veux créer un utilisateur d'identifiant \"([^\"]*)\", de mot de passe \"([^\"]*)\", de prénom \"([^\"]*)\", de nom \"([^\"]*)\" et de role \"([^\"]*)\"$")
+    public void jeVeuxCréerUnUtilisateurDIdentifiantDeMotDePasseDePrénomEtDeNom(String email, String password, String firstname, String lastname, String role) throws Throwable {
         user = new UserDto();
         user.setEmail(email);
         user.setPassword(password);
         user.setFirstName(firstname);
         user.setLastName(lastname);
+        user.setRole(role);
     }
 
     @When("^Je fais un PUT vers le chemin /users/block/ avec email$")
@@ -123,9 +127,16 @@ public class Stepdefs {
             usersApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = usersApi.blockWithHttpInfo(this.email);
             lastApiCallThrewException = false;
+            body = lastApiResponse.getData();
+            lastStatusCode = lastApiResponse.getStatusCode();
+            System.out.println("Code d'exécution: " + lastStatusCode);
+            System.out.println("Corps: " + body);
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiException = e;
+            body = e.getResponseBody();
+            lastStatusCode = e.getCode();
+            System.out.println("Code d'exécution: " + e.getCode());
         }
     }
 
@@ -135,9 +146,16 @@ public class Stepdefs {
             usersApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = usersApi.unblockWithHttpInfo(this.email);
             lastApiCallThrewException = false;
+            body = lastApiResponse.getData();
+            lastStatusCode = lastApiResponse.getStatusCode();
+            System.out.println("Code d'exécution: " + lastStatusCode);
+            System.out.println("Corps: " + body);
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiException = e;
+            body = e.getResponseBody();
+            lastStatusCode = e.getCode();
+            System.out.println("Code d'exécution: " + lastStatusCode);
         }
     }
 
@@ -156,9 +174,13 @@ public class Stepdefs {
             changePassword.setOldPassword(this.password);
             lastApiResponse = usersApi.changePasswordWithHttpInfo(changePassword);
             lastApiCallThrewException = false;
+            body = lastApiResponse.getData();
+            lastStatusCode = lastApiResponse.getStatusCode();
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiException = e;
+            body = e.getResponseBody();
+            lastStatusCode = e.getCode();
         }
     }
 

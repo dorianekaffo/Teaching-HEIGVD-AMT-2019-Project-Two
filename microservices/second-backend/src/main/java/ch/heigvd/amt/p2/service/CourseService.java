@@ -97,7 +97,8 @@ public class CourseService implements IEntityService<Course, Long> {
         return this.courseRepository.findByOwner(owner, pgble);
     }
 
-    public boolean isOwner(Long id, String owner) {
+    public boolean isOwner(Long id, String owner) throws ResourceNotFoundException {
+        if (!this.courseRepository.existsById(id)) throw new ResourceNotFoundException();
         return this.courseRepository.existsByIdAndOwner(id, owner);
     }
 }

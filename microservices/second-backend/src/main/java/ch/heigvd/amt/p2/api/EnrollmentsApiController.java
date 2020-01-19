@@ -51,7 +51,7 @@ public class EnrollmentsApiController implements EnrollmentsApi {
             Enrollment enrollment = this.enrollmentService.convertToEntity(body);
             enrollment.setOwner(AuthHelper.getUsername());
             enrollment = this.enrollmentService.create(enrollment);
-            return new ResponseEntity<>(this.enrollmentService.convertToDto(enrollment), HttpStatus.OK);
+            return new ResponseEntity<>(this.enrollmentService.convertToDto(enrollment), HttpStatus.CREATED);
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -60,11 +60,13 @@ public class EnrollmentsApiController implements EnrollmentsApi {
     @Override
     public ResponseEntity<Void> deleteEnrollment(@ApiParam(value = "Identifiant de l'enrôlement",required=true) @PathVariable("id") Integer id) {
         try {
-            if (AuthHelper.isAdmin() || this.enrollmentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
-                this.enrollmentService.delete(id.longValue());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            if (!AuthHelper.isAdmin() && !this.enrollmentService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+                throw new ForbiddenAccessException();
             }
-        throw new ForbiddenAccessException();
+
+            this.enrollmentService.delete(id.longValue());
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
     } catch (ResourceNotFoundException ex) {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     } catch (ForbiddenAccessException ex) {

@@ -49,18 +49,20 @@ public class CoursesApiController implements CoursesApi {
         Course course = this.courseService.convertToEntity(courseDto);
         course.setOwner(AuthHelper.getUsername());
         course = this.courseService.create(course);
-        return new ResponseEntity<>(this.courseService.convertToDto(course), HttpStatus.OK);
+        return new ResponseEntity<>(this.courseService.convertToDto(course), HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<Void> deleteCourse(@ApiParam(value = "identifiant du cours à supprimer",required=true) @PathVariable("id") Integer id) {
         try {
 
-            if (AuthHelper.isAdmin() || this.courseService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+            if (!AuthHelper.isAdmin() && !this.courseService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+                throw new ForbiddenAccessException();
+            }
+
             this.courseService.delete(id.longValue());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            throw new ForbiddenAccessException();
+
         } catch (ResourceNotFoundException ex) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (ForbiddenAccessException ex) {
@@ -70,18 +72,20 @@ public class CoursesApiController implements CoursesApi {
 
     @Override
     public ResponseEntity<CourseDto> getCourse(@ApiParam(value = "L'identifiant du cours",required=true) @PathVariable("id") Integer id) {
+
         try {
 
-            if (AuthHelper.isAdmin() || this.courseService.isOwner(id.longValue(), AuthHelper.getUsername())) {
-        Course course = this.courseService.get(id.longValue());
-        return new ResponseEntity(this.courseService.convertToDto(course), HttpStatus.OK);
+            if (!AuthHelper.isAdmin() && !this.courseService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+                throw new ForbiddenAccessException();
+            }
+            Course course = this.courseService.get(id.longValue());
+            return new ResponseEntity(this.courseService.convertToDto(course), HttpStatus.OK);
+
+        } catch (ResourceNotFoundException ex) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (ForbiddenAccessException ex) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-        throw new ForbiddenAccessException();
-    } catch (ResourceNotFoundException ex) {
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    } catch (ForbiddenAccessException ex) {
-        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-    }
     }
 
     @Override
@@ -109,13 +113,15 @@ public class CoursesApiController implements CoursesApi {
     @Override
     public ResponseEntity<CourseDto> updateCourse(@ApiParam(value = "identifiant du cours à mettre à jour",required=true) @PathVariable("id") Integer id,@ApiParam(value = "Le cours à mettre à jour" ,required=true )  @Valid @RequestBody CourseDto body) {
         try {
-            if (AuthHelper.isAdmin() || this.courseService.isOwner(id.longValue(), AuthHelper.getUsername())) {
-                Course course = this.courseService.convertToEntity(body);
-                course.setOwner(AuthHelper.getUsername());
-                course = this.courseService.update(id.longValue(), course);
-                return new ResponseEntity(this.courseService.convertToDto(course), HttpStatus.OK);
+            if (!AuthHelper.isAdmin() && !this.courseService.isOwner(id.longValue(), AuthHelper.getUsername())) {
+                throw new ForbiddenAccessException();
             }
-        throw new ForbiddenAccessException();
+
+            Course course = this.courseService.convertToEntity(body);
+            course.setOwner(AuthHelper.getUsername());
+            course = this.courseService.update(id.longValue(), course);
+            return new ResponseEntity(this.courseService.convertToDto(course), HttpStatus.OK);
+
     } catch (ResourceNotFoundException ex) {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     } catch (ForbiddenAccessException ex) {

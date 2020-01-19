@@ -103,7 +103,8 @@ public class StudentService implements IEntityService<Student, Long> {
         return this.studentRepository.findByOwner(owner, pgble);
     }
 
-    public boolean isOwner(Long id, String owner) {
+    public boolean isOwner(Long id, String owner) throws ResourceNotFoundException {
+        if (!this.studentRepository.existsById(id)) throw new ResourceNotFoundException();
         return this.studentRepository.existsByIdAndOwner(id, owner);
     }
 }

@@ -1,7 +1,8 @@
 Feature: Test sur les fonctionnalités d'un utilisateur non-admin
 
   Background:
-    Given J'ai l'adresse email "renedescartes@heig-vd.ch" et le mot de passe "renedescartes"
+    Given J'ai un serveur
+    And J'ai l'adresse email "renedescartes@heig-vd.ch" et le mot de passe "renedescartes"
     And Je fais un POST vers le chemin /auth/login
     And Je reçois une réponse de code 200
     And Je reçois un token
