@@ -15,6 +15,7 @@ import cucumber.api.java.en.When;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -45,6 +46,10 @@ public class Stepdefs {
         Properties properties = new Properties();
         properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
         String url = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
+
+        authApi.getApiClient().setHttpClient(authApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
+        usersApi.getApiClient().setHttpClient(usersApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
+
         authApi.getApiClient().setBasePath(url);
         usersApi.getApiClient().setBasePath(url);
     }

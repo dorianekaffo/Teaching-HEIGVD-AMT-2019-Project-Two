@@ -12,6 +12,7 @@ import ch.heigvd.amt.p2.ApiResponse;
 import java.util.Properties;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -53,6 +54,12 @@ public class Stepdefs {
 
         // Initialisation du second serveur
         String secondServerUrl = properties.getProperty("ch.heigvd.amt.p2.second-server.url");
+
+        courseApi.getApiClient().setHttpClient(courseApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
+        studentApi.getApiClient().setHttpClient(courseApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
+        enrollmentApi.getApiClient().setHttpClient(courseApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
+
+
         courseApi.getApiClient().setBasePath(secondServerUrl);
         studentApi.getApiClient().setBasePath(secondServerUrl);
         enrollmentApi.getApiClient().setBasePath(secondServerUrl);
@@ -356,7 +363,8 @@ public class Stepdefs {
     public void ilYAUnServeurDuPremierBackend() throws IOException {
         Properties properties = new Properties();
         properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
-
+        authApi.getApiClient().setHttpClient(authApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
+        userApi.getApiClient().setHttpClient(userApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
         // Initialisation du second serveur
         String firstServerUrl = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
         authApi.getApiClient().setBasePath(firstServerUrl);
