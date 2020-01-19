@@ -56,9 +56,8 @@ public class Stepdefs {
         String secondServerUrl = properties.getProperty("ch.heigvd.amt.p2.second-server.url");
 
         courseApi.getApiClient().setHttpClient(courseApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-        studentApi.getApiClient().setHttpClient(courseApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-        enrollmentApi.getApiClient().setHttpClient(courseApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-
+        studentApi.getApiClient().setHttpClient(studentApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
+        enrollmentApi.getApiClient().setHttpClient(enrollmentApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
 
         courseApi.getApiClient().setBasePath(secondServerUrl);
         studentApi.getApiClient().setBasePath(secondServerUrl);
@@ -84,8 +83,8 @@ public class Stepdefs {
     @When("^Je fais un POST pour créer un étudiant$")
     public void jeFaisUnPOSTPourCréerUnÉtudiant() {
         try {
-            courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = courseApi.createCourseWithHttpInfo(course);
+            studentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
+            lastApiResponse = studentApi.createStudentWithHttpInfo(student);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
             lastApiCallThrewException = true;
@@ -294,7 +293,6 @@ public class Stepdefs {
         credentials.setPassword(password);
 
         try {
-            enrollmentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = authApi.loginWithHttpInfo(credentials);
             lastApiCallThrewException = false;
             assertEquals(200, lastApiResponse.getStatusCode());
@@ -363,10 +361,12 @@ public class Stepdefs {
     public void ilYAUnServeurDuPremierBackend() throws IOException {
         Properties properties = new Properties();
         properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
-        authApi.getApiClient().setHttpClient(authApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-        userApi.getApiClient().setHttpClient(userApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
         // Initialisation du second serveur
         String firstServerUrl = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
+
+        authApi.getApiClient().setHttpClient(authApi.getApiClient().getHttpClient().newBuilder().readTimeout(45, TimeUnit.SECONDS).build());
+        userApi.getApiClient().setHttpClient(userApi.getApiClient().getHttpClient().newBuilder().readTimeout(45, TimeUnit.SECONDS).build());
+
         authApi.getApiClient().setBasePath(firstServerUrl);
         userApi.getApiClient().setBasePath(firstServerUrl);
     }
@@ -407,6 +407,7 @@ public class Stepdefs {
     public void jeFaisUnGETVersLeCheminStudentsAvecLeNouvelÉtudiant() {
         try {
             studentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
+            System.out.println("Student: " + this.student + ", id: " + this.student.getId());
             lastApiResponse = studentApi.getStudentWithHttpInfo(this.student.getId());
             lastApiCallThrewException = false;
         } catch (ApiException e) {
@@ -419,6 +420,7 @@ public class Stepdefs {
     public void jeFaisUnGETVersLeCheminCoursesAvecLeNouveauCours() {
         try {
             courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
+            System.out.println("Course: " + this.course + ", id: " + this.course.getId());
             lastApiResponse = courseApi.getCourseWithHttpInfo(this.course.getId());
             lastApiCallThrewException = false;
         } catch (ApiException e) {

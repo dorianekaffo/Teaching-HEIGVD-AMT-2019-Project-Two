@@ -1,8 +1,5 @@
 Feature: Test sur les fonctionnalités d'un utilisateur non-admin
 
-  Background:
-
-
   Scenario: Changement de mot de passe
     Given J'ai un serveur
     And J'ai l'adresse email "renedescartes@heig-vd.ch" et le mot de passe "renedescartes"
