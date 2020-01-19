@@ -1,11 +1,20 @@
 # Rapport Final du projet
-Dans le cadre de ce projet nous étions censé faire des 
+Ce rapport fait état des résultats que nous avons obtenus dans le cadre du deuxième projet de l'AMT 2019.
 
 ## Liste des fonctionnalités
  Nous avons différentes api que nous avons développé dans ce projet. Toutes les a part certaines nécessitent une authentification avant de pouvoir les consomer. Ceci se fait par token **JWT(Json Web Token)**.
 Donc pour pouvoir s'authentifier, il est nécessaire  Nous avons les endpoints suivants:
 
-#### Fonctionnalités du premier backend
+### Premier backend
+
+##### Modèle du domaine
+Nous avons le modèle de domaine donné par la figure ci-dessous:
+
+![Modèle du domaine du deuxième backend](./images/diagram-domain-model-first-backend.png  "Modèle du domaine du deuxième backend") 
+
+Il n'y a que l'entité __User__ représentant l'utilisateur et __Code__ pour les codes qui seront envoyé pour vérification.
+
+##### Fonctionnalités
 
 - __Authentification__: Cette fonctionnalité permet à un utilisateur de s'authentifier. Pour cela il doit fournir un mot de passe et son adresse mail. Si ceci correspond à ce qui est sauvegarder en base de données alors un reçoit un token qui doit joindre à l'entête `Authorization` des requêtes suivantes sous la forme `Bearer [token]`. Cette fonctionnalité accessible en faisant un __POST__ vers l'URL `auth/login`.
 
@@ -28,9 +37,18 @@ Ce fonctionnalité est accessible en faisant un __GET__ vers le chemin `users/co
 	- __Page de réinitialisation du mot de passe__: Retourne la page de réinitialisation du mot de passe. Pour cela il est nécessaire de fournir un token valide. Ceci est disponible en faisant un __GET__ vers le chemin  ` users/resetPassword` avec  `token` comme variable dans l'URL (ex:  `users/resetPassword?token=eyjf58lk... `)
 	- __Réinitialiser le mot de passe__:  Ceci change réinitialiser effectivement le mot de passe. Pour cela il fournit le  __token__ et le __nouveau mot de passe__. Ceci est accessible en faisant __POST__ vers le chemin  `users/password`.
 	
-#### Fonctionnalités du deuxième backend
+### Deuxième backend
+##### Modèle du domaine
 Pour le second backend, nous avons 2 entités principales à savoir __Student__(étudiant) et __Course__(cours). Nous avons ensuite une troisième entité __Enrollment__ qui marque l'enrôlement d'un étudiant à un cours.
 
+Nous avons le modèle de domaine donné par la figure ci-dessous:
+
+![Modèle du domaine du deuxième backend](./images/diagram-domain-model-second-backend.png  "Modèle du domaine du deuxième backend") 
+
+ 
+ ici nous avons modéliser l'association ternaire entre __Enrollment__ et les autres entités par une __relation unilateral__. En effet il n'y a que l'entité Enrollment qui contient des références vers les autres entités (__Student__ et __Course__) par des relations __ManyToOne__. 
+
+##### Fonctionnalités
 Pour les deux entités principales, nous avons les mêmes fonctionnalités à savoir le CRUD (__C__ reate, __R__ ead, __U__ pdate, __D__ elete). Nous les détaillons ci-dessous:
 
 - __Création (Create)__: Par cela, nous parlons de la création d'une entité (Soit un __étudiant__, soit un __cours__). Cette fonctionnalité est accessible en faisant un `POST` vers le chemin  `students` pour créer un étudiant et  `course` pour créer un cours.
@@ -38,18 +56,27 @@ Pour les deux entités principales, nous avons les mêmes fonctionnalités à sa
 - __Mise à jour (Update)__: Ceci est la modification d'une entité en base de données. Cette fonctionnalité est accessible en faisant un __PUT__ vers le chemin `students/{id}` où  `id` est l'identifiant de l'étudiant ou vers le chemin`courses/{id}` où  `id` est l'identifiant du cours. Dans le corps de la requête on met l'objet avec ses modifications.
 -- __Suppression (Delete)__: Ceci est la suppression d'une entité en base de données. Lorsque nous supprimons une entité (__étudiant__ ou __cours__), nous supprimons les tous les __enrôlements__ liés à cet étudiant ou ce cours. Cette fonctionnalité est accessible en faisant un __DELETE__ vers le chemin `students/{id}` où  `id` est l'identifiant de l'étudiant ou vers le chemin `courses/{id}` où  `id` est l'identifiant du cours.
 
+>il est à noté que pour la pagination, nous avons choisi l'option de l'__envelope__. L'enveloppe est un objet qui contient les champs:
+>
+>- __content__: Liste des elements de la page.
+>- __pageNumber__: Numéro de page.
+>- __pageSize__: Taille de la page.
+>- __totalPages__: Nombre total de page selon la taille de la page.
+>- __totalElements__: Nombre total des éléments.
+
 Pour l'enrôlement, nous avons les opérations suivantes:
 - __Création (Create)__: Ceci est es. Cette fonctionnalité est accessible en faisant un `POST` vers le chemin  `enrollments` pour créer un enrôlement. Dans le corps de la requête, nous fournissons l'identifiant de l'étudiant ent l'identifiant du cours.
-- __Récupération (Read)__: Ceci est la récupération des entités en base de données. Nous pouvons récupérer toutes les entités d'un type (Soit __étudiant__, soit __cours__ mais sous forme paginée. Ceci se fait en faisant un __GET__ vers le chemin  `students` pour les étudiants et  `courses` pour les cours. Nous pouvons ajouter le __numéro de page__ et la __taille de page__ comme variables d'URL. (ex:  `students?page=1&size=20`. Nous pouvons aussi récupérer une entité particulière en faisant un __GET__ vers le chemin  `students/{id}` où  `id` est l'identifiant de l'étudiant ou vers le chemin `courses/{id}` où  `id` est l'identifiant du cours.
--- __Suppression (Delete)__: Ceci est la suppression d'une entité en base de données. Lorsque nous supprimons une entité (__étudiant__ ou __cours__), nous supprimons les tous les __enrôlements__ liés à cet étudiant ou ce cours. Cette fonctionnalité est accessible en faisant un __DELETE__ vers le chemin `students/{id}` où  `id` est l'identifiant de l'étudiant ou vers le chemin `courses/{id}` où  `id` est l'identifiant du cours.
+- __Récupération (Read)__: Ceci est la récupération des enrôlements. Ceci se fait en faisant un __GET__ vers le chemin  `enrollments`. Nous pouvons ajouter le __numéro de page__ et la __taille de page__ comme variables d'URL. (ex:  `enrollments?page=1&size=20`. Nous pouvons aussi récupérer une entité particulière en faisant un __GET__ vers le chemin  `enrollments/{id}` où  `id` est l'identifiant de l'enrôlement.
+-- __Suppression (Delete)__: Ceci est la suppression d'un enrôlement. Cette fonctionnalité est accessible en faisant un __DELETE__ vers le chemin `enrollments/{id}` où  `id` est l'identifiant de l'enrôlement
 
-Il est à noter que pour chacune de ses ressources, il y a un __owner__ et un utilisateur ne peut apporter des modifications (__R__ ead, __U__ pdate, __D__ elete) que sur des ressources dont il est le __"owner"__.
+> Il est à noter que pour chacune de ses ressources, il y a un __owner__ et un utilisateur ne peut apporter des modifications (__R__ ead, __U__ pdate, __D__ elete) que sur des ressources dont il est le __"owner"__.
 
+Pour plus d'informations vous pouvez consulter la documentation Swagger produite.
 
 ## Rapport sur les tests de validations sur Cucumber
 Pour le développment de l'application, nous avons utilisé l'approche __BDD (Behaviour Driven Development)__. Donc pour valider le design nos APIs, nous avons utilisé l'approche BDD avec Cucumber JVM. Nous avons décrit des scénarios avec les valeurs que nous nous attendions de recevoir dans la logique d'un scénario qu'un utilisateur pourrait suivre.
 
-Pour tester notre application, nous avons pris notre
+Notre application a servit de SUT (Subject under test pour les test.
 
 ## Les difficultés rencontrées
 - La configuration de Traefik n'a pas été rapide. Bien que sa configuration est simple, aboûtir à cette configuration n'a pas été facile. Pour plus d'information sur la configuration de Traefik pour le projet, vous pouvez consulter le document [docker.md](./docker.md).
