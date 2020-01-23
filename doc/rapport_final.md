@@ -85,6 +85,6 @@ Notre application a servi de SUT (__S__ ystem __U__ nder __T__ est) pour les tes
 ## Bugs et limitations
 
 - Dans le cadre de ce projet, nous n'étions pas obligé de gérer ajouter la __gestion des tokens__. En effet, les tokens sont octroyé aux utilisateurs dès qu'ils se sont authentifiés mais ne sont pas conservé dans le système. Si un utilisateur entre en possession de ce token et l'utilise dans le système pendant qu'il est encore valide, il pourrait réaliser des opérations sur le système comme le détenteur du token.
-- Je n'ai pas pu faire les commentaires sur les tests sur Jmeter et sur Cucumber.
+- Je n'ai pas pu faire les commentaires sur les tests sur Jmeter et sur Cucumber faute de temps.
 
 - 
