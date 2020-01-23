@@ -2,6 +2,8 @@ package ch.heigvd.amt.p2.steps;
 
 import ch.heigvd.amt.p2.api.*;
 import ch.heigvd.amt.p2.dto.*;
+import ch.heigvd.amt.p2.helpers.Environment;
+import ch.heigvd.amt.p2.helpers.Role;
 import cucumber.api.PendingException;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
@@ -19,22 +21,17 @@ import static org.junit.Assert.*;
 public class Stepdefs {
 
     // private final DefaultApi api = new DefaultApi();
+    private Environment environment = new Environment();
 
-    private CourseApi courseApi = new CourseApi();
-    private StudentApi studentApi = new StudentApi();
-    private EnrollmentApi enrollmentApi = new EnrollmentApi();
-
-    // Les api pour le premier backend
-    private AuthApi authApi = new AuthApi();
-    private UserApi userApi = new UserApi();
+    private CourseApi courseApi;
+    private StudentApi studentApi;
+    private EnrollmentApi enrollmentApi;
 
     private Integer id;
 
     private CourseDto course;
     private StudentDto student;
     private EnrollmentDto enrollment;
-
-    private UserDto user;
 
     private ApiResponse lastApiResponse;
     private ApiException lastApiException;
@@ -47,22 +44,18 @@ public class Stepdefs {
 
     private String token;
 
+    public Stepdefs() throws IOException {
+        this.environment = new Environment();
+        this.studentApi = this.environment.getStudentApi();
+        this.courseApi = this.environment.getCourseApi();
+        this.enrollmentApi = this.environment.getEnrollmentApi();
+    }
+
     @Given("^Il y a un serveur$")
     public void there_is_a_second_server() throws Throwable {
-        Properties properties = new Properties();
-        properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
-
-        // Initialisation du second serveur
-        String secondServerUrl = properties.getProperty("ch.heigvd.amt.p2.second-server.url");
-
-        courseApi.getApiClient().setHttpClient(courseApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-        studentApi.getApiClient().setHttpClient(studentApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-        enrollmentApi.getApiClient().setHttpClient(enrollmentApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-
-        courseApi.getApiClient().setBasePath(secondServerUrl);
-        studentApi.getApiClient().setBasePath(secondServerUrl);
-        enrollmentApi.getApiClient().setBasePath(secondServerUrl);
-
+        assertNotNull(this.studentApi);
+        assertNotNull(this.courseApi);
+        assertNotNull(this.enrollmentApi);
     }
 
     @Then("^Je reçois une réponse de code (\\d+)$")
@@ -132,7 +125,7 @@ public class Stepdefs {
         course.setTitle("BDD avec Cucumber");
     }
 
-    @When("^Je fais un POST vers le chemin /courses pour créer un cours$")
+    @When("^Je fais un POST vers le chemin /courses$")
     public void jeFaisUnPOSTVersLeCheminCoursesPourCréerUnCours() {
         try {
             courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
@@ -141,88 +134,26 @@ public class Stepdefs {
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiException = e;
-            System.out.println("Exception: " + e);
         }
     }
 
-    @And("^Je fais un GET pour récupérer mon nouveau cours$")
-    public void jeFaisUnGETPourRécupérerMonNouveauCours() {
-        try {
-            assertTrue(lastApiResponse.getData() instanceof CourseDto);
-            courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = courseApi.getCourseWithHttpInfo(((CourseDto) lastApiResponse.getData()).getId());
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
-    @And("^Les cours correspondent$")
-    public void lesCoursCorrespondent() {
+    @And("^Le cours est modifié$")
+    public void leCoursEstModifie() {
         assertTrue(lastApiResponse.getData() instanceof CourseDto);
-        assertEquals(((CourseDto) lastApiResponse.getData()).getTitle(), this.course.getTitle());
+        assertNotEquals(((CourseDto) lastApiResponse.getData()).getTitle(), this.course.getTitle());
     }
 
-    @Given("^J'ai l'identifiant (\\d+) d'une ressource$")
-    public void jAiLIdentifiantDUneRessource(int identifiant) {
-        this.id = identifiant;
+    @And("^L'étudiant est modifié$")
+    public void lEtudiantEstModifie() {
+        assertTrue(lastApiResponse.getData() instanceof StudentDto);
+        assertNotEquals(((StudentDto) lastApiResponse.getData()).getLastname(), this.student.getLastname());
     }
-
 
     @And("^J'ai un cours à mettre à jour$")
     public void jAiUnCoursÀMettreÀJour() {
         course = new CourseDto();
         course.setId(this.id);
         course.setTitle("Premier pas avec Spring Boot");
-    }
-
-    @When("^Je fais un PUT vers le chemin /courses/(\\d+) avec des données$")
-    public void jeFaisUnPUTVersLeCheminCoursesAvecDesDonnées(int arg0) {
-        try {
-            courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = courseApi.updateCourseWithHttpInfo(this.id, this.course);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
-    @When("^Je fais un GET vers le chemin /courses/(\\d+)$")
-    public void jeFaisUnGETVersLeCheminCourses(int identifiant) {
-        try {
-            courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = courseApi.getCourseWithHttpInfo(identifiant);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
-    @When("^Je fais un DELETE vers le chemin /courses/(\\d+) pour le supprimer$")
-    public void jeFaisUnDELETEVersLeCheminCoursesPourLeSupprimer(int identifiant) {
-        try {
-            courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = courseApi.deleteCourseWithHttpInfo(identifiant);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
-    @When("^Je fais un PUT vers le chemin /students/(\\d+)$")
-    public void jeFaisUnPUTVersLeCheminStudents(int identifiant) {
-        try {
-            studentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = studentApi.updateStudentWithHttpInfo(identifiant, student);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
     }
 
     @And("^Je veux mettre à jour l'étudiant correspondant$")
@@ -239,30 +170,6 @@ public class Stepdefs {
             assertEquals(expectedStatusCode, lastApiException.getCode());
         } else {
             assertEquals(expectedStatusCode, lastApiResponse.getStatusCode());
-        }
-    }
-
-    @When("^Je fais un GET vers le chemin /students/(\\d+)$")
-    public void jeFaisUnGETVersLeCheminStudents(int identifiant) {
-        try {
-            studentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = studentApi.getStudentWithHttpInfo(identifiant);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
-    @When("^Je fais un DELETE vers le chemin /students/(\\d+)$")
-    public void jeFaisUnDELETEVersLeCheminStudents(int identifiant) {
-        try {
-            studentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = studentApi.deleteStudentWithHttpInfo(identifiant);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
         }
     }
 
@@ -285,45 +192,11 @@ public class Stepdefs {
         student.setLastname(lastname);
     }
 
-    @Given("^Je m'authentifie avec l'email \"([^\"]*)\" et le mot de passe \"([^\"]*)\"$")
-    public void jeMAuthentifieAvecLEmailEtLeMotDePasse(String email, String password) throws Throwable {
-
-        Credentials credentials = new Credentials();
-        credentials.setEmail(email);
-        credentials.setPassword(password);
-
-        try {
-            lastApiResponse = authApi.loginWithHttpInfo(credentials);
-            lastApiCallThrewException = false;
-            assertEquals(200, lastApiResponse.getStatusCode());
-            this.token = (String) lastApiResponse.getData();
-            System.out.println("Le token: " + this.token);
-            assertFalse(this.token.isEmpty());
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-
-    }
-
     @When("^Je fais un POST vers le chemin /enrollments$")
     public void jeFaisUnPOSTVersLeCheminEnrollments() {
         try {
             enrollmentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
             lastApiResponse = enrollmentApi.createEnrollmentWithHttpInfo(enrollment);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
-
-    @When("^Je fais un DELETE vers le chemin /enrollments/(\\d+)$")
-    public void jeFaisUnDELETEVersLeCheminEnrollments(int arg0) {
-        try {
-            enrollmentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = enrollmentApi.deleteEnrollmentWithHttpInfo(arg0);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
             lastApiCallThrewException = true;
@@ -357,57 +230,20 @@ public class Stepdefs {
         enrollment.setCourse(courseId);
     }
 
-    @And("^Il y a un serveur du premier backend$")
-    public void ilYAUnServeurDuPremierBackend() throws IOException {
-        Properties properties = new Properties();
-        properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
-        // Initialisation du second serveur
-        String firstServerUrl = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
-
-        authApi.getApiClient().setHttpClient(authApi.getApiClient().getHttpClient().newBuilder().readTimeout(45, TimeUnit.SECONDS).build());
-        userApi.getApiClient().setHttpClient(userApi.getApiClient().getHttpClient().newBuilder().readTimeout(45, TimeUnit.SECONDS).build());
-
-        authApi.getApiClient().setBasePath(firstServerUrl);
-        userApi.getApiClient().setBasePath(firstServerUrl);
-    }
-
-    @And("^J'ai un utilisateur de prénom \"([^\"]*)\", de nom \"([^\"]*)\", d'email \"([^\"]*)\", de mot de passe \"([^\"]*)\" et de role \"([^\"]*)\"$")
-    public void jAiUnUtilisateurDePrénomDeNomDEmailDeMotDePasseEtDeRole(String firstName, String lastName, String email, String password, String role) throws Throwable {
-        this.user = new UserDto();
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setEmail(email);
-        user.setPassword(password);
-        user.setRole(role);
-    }
-
-    @And("^Je fais un POST vers le chemin /users$")
-    public void jeFaisUnPOSTVersLeCheminUsers() {
-        try {
-            userApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = userApi.createWithHttpInfo(this.user);
-            lastApiCallThrewException = false;
-        } catch (ApiException e) {
-            lastApiCallThrewException = true;
-            lastApiException = e;
-        }
-    }
-
-    @And("^Je recupère le nouveau cours$")
-    public void jeRecupèreLeNouveauCours() {
+    @And("^Je récupère le nouveau cours$")
+    public void jeRecupereLeNouveauCours() {
         this.course = (CourseDto) lastApiResponse.getData();
     }
 
     @And("^Je récupère le nouvel étudiant$")
-    public void jeRécupèreLeNouvelÉtudiant() {
+    public void jeRecupereLeNouvelÉtudiant() {
         this.student = (StudentDto) lastApiResponse.getData();
     }
 
     @And("^Je fais un GET vers le chemin /students avec le nouvel étudiant$")
-    public void jeFaisUnGETVersLeCheminStudentsAvecLeNouvelÉtudiant() {
+    public void jeFaisUnGETVersLeCheminStudentsAvecLeNouvelEtudiant() {
         try {
             studentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            System.out.println("Student: " + this.student + ", id: " + this.student.getId());
             lastApiResponse = studentApi.getStudentWithHttpInfo(this.student.getId());
             lastApiCallThrewException = false;
         } catch (ApiException e) {
@@ -420,7 +256,6 @@ public class Stepdefs {
     public void jeFaisUnGETVersLeCheminCoursesAvecLeNouveauCours() {
         try {
             courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            System.out.println("Course: " + this.course + ", id: " + this.course.getId());
             lastApiResponse = courseApi.getCourseWithHttpInfo(this.course.getId());
             lastApiCallThrewException = false;
         } catch (ApiException e) {
@@ -432,10 +267,16 @@ public class Stepdefs {
 
     @And("^Je fais un PUT vers le chemin /students avec le nouvel étudiant avec son nouveau nom \"([^\"]*)\"$")
     public void jeFaisUnPUTVersLeCheminStudentsAvecLeNouvelÉtudiantAvecSonNouveauNom(String lastname) throws Throwable {
-        this.student.setLastname(lastname);
+
+        StudentDto updatedStudent = new StudentDto();
+        updatedStudent.setLastname(lastname);
+        updatedStudent.setId(this.student.getId());
+        updatedStudent.setFirstname(this.student.getFirstname());
+        updatedStudent.setOwner(this.student.getOwner());
+
         try {
             studentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = studentApi.updateStudentWithHttpInfo(this.student.getId(), this.student);
+            lastApiResponse = studentApi.updateStudentWithHttpInfo(this.student.getId(), updatedStudent);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
             lastApiCallThrewException = true;
@@ -446,11 +287,13 @@ public class Stepdefs {
     @When("^Je fais un PUT vers le chemin /courses avec le nouveau cours avec son nouveau titre \"([^\"]*)\"$")
     public void jeFaisUnPUTVersLeCheminCoursesAvecLeNouveauCoursAvecSonNouveauTitre(String arg0) throws Throwable {
 
-        this.course.setTitle(arg0);
+        CourseDto updatedCourse = new CourseDto();
+        updatedCourse.setId(this.course.getId());
+        updatedCourse.setTitle(arg0);
 
         try {
             courseApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
-            lastApiResponse = courseApi.updateCourseWithHttpInfo(this.course.getId(), course);
+            lastApiResponse = courseApi.updateCourseWithHttpInfo(this.course.getId(), updatedCourse);
             lastApiCallThrewException = false;
         } catch (ApiException e) {
             lastApiCallThrewException = true;
@@ -498,5 +341,40 @@ public class Stepdefs {
         enrollment = new EnrollmentDto();
         enrollment.setStudent(this.student.getId());
         enrollment.setCourse(this.course.getId());
+    }
+
+    @And("^Je m'authentifie en tant qu'utilisateur avec l'email \"([^\"]*)\" et le rôle \"([^\"]*)\"$")
+    public void jeMAuthentifieEnTantQuUtilisateurAvecLEmailEtLeRôle(String email, String role) throws Throwable {
+        this.token = this.environment.getFakeToken(email, Role.valueOf(role));
+    }
+
+    @And("^Je récupère le nouvel enrollment$")
+    public void jeRécupèreLeNouvelEnrollment() {
+        this.enrollment = (EnrollmentDto)lastApiResponse.getData();
+    }
+
+
+    @And("^Je fais un GET vers le chemin /enrollments avec le nouvel enrôlement$")
+    public void jeFaisUnGETVersLeCheminEnrollmentsAvecLeNouveauEnrollment() {
+        try {
+            enrollmentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
+            lastApiResponse = enrollmentApi.getEnrollmentWithHttpInfo(this.enrollment.getId());
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
+    }
+
+    @When("^Je fais un DELETE vers le chemin /enrollments avec le nouvel enrôlement$")
+    public void jeFaisUnDELETEVersLeCheminEnrollmentsAvecLeNouvelEnrôlement() {
+        try {
+            enrollmentApi.getApiClient().addDefaultHeader("Authorization", "Bearer " + this.token);
+            lastApiResponse = enrollmentApi.deleteEnrollmentWithHttpInfo(this.enrollment.getId());
+            lastApiCallThrewException = false;
+        } catch (ApiException e) {
+            lastApiCallThrewException = true;
+            lastApiException = e;
+        }
     }
 }

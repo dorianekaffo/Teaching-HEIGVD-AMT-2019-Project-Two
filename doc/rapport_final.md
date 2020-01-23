@@ -76,7 +76,7 @@ Pour plus d'informations vous pouvez consulter la documentation Swagger produite
 ## Rapport sur les tests de validations sur Cucumber
 Pour le développment de l'application, nous avons utilisé l'approche __BDD (Behaviour Driven Development)__. Donc pour valider le design nos APIs, nous avons utilisé l'approche BDD avec Cucumber JVM. Nous avons décrit des scénarios avec les valeurs que nous nous attendions de recevoir dans la logique d'un scénario qu'un utilisateur pourrait suivre.
 
-Notre application a servi de SUT (Subject under test pour les test). Nous avons développé des applications qui s'exécute dans des conteneurs docker séparés et qui envoi des requêtes.
+Notre application a servi de SUT (__S__ ystem __U__ nder __T__ est) pour les tests. Nous avons développé des applications qui s'exécute dans des conteneurs docker séparés et qui envoi des requêtes.
 
 ## Les difficultés rencontrées
 - La configuration de Traefik n'a pas été rapide. Bien que sa configuration est simple, aboûtir à cette configuration n'a pas été facile. Pour plus d'information sur la configuration de Traefik pour le projet, vous pouvez consulter le document [docker.md](./docker.md).

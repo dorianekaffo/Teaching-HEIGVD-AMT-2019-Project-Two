@@ -47,11 +47,9 @@ public class Stepdefs {
         properties.load(this.getClass().getClassLoader().getResourceAsStream("environment.properties"));
         String url = properties.getProperty("ch.heigvd.amt.p2.first-server.url");
 
-        authApi.getApiClient().setHttpClient(authApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-        usersApi.getApiClient().setHttpClient(usersApi.getApiClient().getHttpClient().newBuilder().readTimeout(30, TimeUnit.SECONDS).build());
-
         authApi.getApiClient().setBasePath(url);
         usersApi.getApiClient().setBasePath(url);
+
     }
 
     @Then("^Je reçois une réponse de code (\\d+)$")
@@ -134,14 +132,11 @@ public class Stepdefs {
             lastApiCallThrewException = false;
             body = lastApiResponse.getData();
             lastStatusCode = lastApiResponse.getStatusCode();
-            System.out.println("Code d'exécution: " + lastStatusCode);
-            System.out.println("Corps: " + body);
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiException = e;
             body = e.getResponseBody();
             lastStatusCode = e.getCode();
-            System.out.println("Code d'exécution: " + e.getCode());
         }
     }
 
@@ -153,14 +148,11 @@ public class Stepdefs {
             lastApiCallThrewException = false;
             body = lastApiResponse.getData();
             lastStatusCode = lastApiResponse.getStatusCode();
-            System.out.println("Code d'exécution: " + lastStatusCode);
-            System.out.println("Corps: " + body);
         } catch (ApiException e) {
             lastApiCallThrewException = true;
             lastApiException = e;
             body = e.getResponseBody();
             lastStatusCode = e.getCode();
-            System.out.println("Code d'exécution: " + lastStatusCode);
         }
     }
 

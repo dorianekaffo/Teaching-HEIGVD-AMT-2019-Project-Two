@@ -63,27 +63,6 @@
                                 <output>target/generated-sources/swagger</output>
                             </configuration>
                         </execution>
-                        <execution>
-                            <id>first-backend-api-generation</id>
-                            <goals>
-                                <goal>generate</goal>
-                            </goals>
-                            <configuration>
-                                <inputSpec>src/main/resources/first-backend-api-spec.yaml</inputSpec>
-                                <generatorName>java</generatorName>
-                                <!--
-                                <library>jersey2</library>
-                                -->
-                                <library>okhttp-gson</library>
-                                <configOptions>
-                                    <sourceFolder>.</sourceFolder>
-                                    <dateLibrary>joda</dateLibrary>
-                                    <modelPackage>ch.heigvd.amt.p2.dto</modelPackage>
-                                    <apiPackage>ch.heigvd.amt.p2.api</apiPackage>
-                                </configOptions>
-                                <output>target/generated-sources/swagger</output>
-                            </configuration>
-                        </execution>
                     </executions>
                 </plugin>
             </plugins>
@@ -170,6 +149,12 @@
                 <groupId>com.brsanthu</groupId>
                 <artifactId>migbase64</artifactId>
                 <version>2.2</version>
+            </dependency>
+            <!-- Gestion des tokens par Json Web Token(JWT) -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>0.9.1</version>
             </dependency>
         </dependencies>
 
